@@ -1,12 +1,16 @@
 import React from 'react';
 import { Form, Icon, Input, Button, Checkbox } from 'antd';
 import './index.css'
+import { connect } from 'react-redux'
+import {login} from '../../reducer/actions'
+import store from '../../reducer/index'
 
 class Login extends React.Component {
   handleSubmit = e => {
     e.preventDefault();
     this.props.form.validateFields((err, values) => {
       if (!err) {
+        store.dispatch(store.actions.login('You are mt sunshine'))
         console.log('Received values of form: ', values);
       }
     });
@@ -18,6 +22,7 @@ class Login extends React.Component {
       <div className='wholeBk'>
         <div className='loginPad'>
           <div className='title'>登录</div>
+          {}
           <Form onSubmit={this.handleSubmit}>
             <Form.Item className='item'>
               {getFieldDecorator('userId', {
