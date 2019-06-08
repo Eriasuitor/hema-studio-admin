@@ -1,4 +1,4 @@
-'use strict';
+
 
 const fs = require('fs');
 const isWsl = require('is-wsl');
@@ -330,6 +330,15 @@ module.exports = function(webpackEnv) {
                 limit: 10000,
                 name: 'static/media/[name].[hash:8].[ext]',
               },
+            },
+            {
+              test: /\.(js|jsx)$/,
+              include: paths.appSrc,
+              loader: 'babel-loader',
+              query: {
+                  cacheDirectory: true,
+                  plugins: [["import", { libraryName: "antd", style: "css"}]]
+              }
             },
             // Process application JS with Babel.
             // The preset includes JSX, Flow, TypeScript, and some ESnext features.
