@@ -1,5 +1,6 @@
 const actionType = Object.freeze({
-	LOGIN: 'LOGIN'
+	LOGIN: 'LOGIN',
+	UNAUTHORIZED: 'UNAUTHORIZED'
 })
 
 export default actionType

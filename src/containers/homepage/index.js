@@ -1,6 +1,10 @@
 import { Menu, Icon, Switch } from 'antd';
 import React from 'react';
 import { BrowserRouter as Router, Route, Link } from "react-router-dom";
+import store from '../../reducer/index'
+import { Redirect } from 'react-router'
+import {unauthorized} from '../../reducer/actions'
+import Member from '../member'
 
 class Homepage extends React.Component {
   state = {
@@ -21,6 +25,10 @@ class Homepage extends React.Component {
   };
 
   render() {
+    if(!store.getState().token) {
+      store.dispatch(unauthorized('./index'))
+      return (<Redirect to='/login' />)
+    }
     return (
       <div>
         <Menu
@@ -43,6 +51,7 @@ class Homepage extends React.Component {
             报名管理
           </Menu.Item>
         </Menu>
+        {this.props.children}
       </div>
     );
   }
