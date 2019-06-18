@@ -15,7 +15,13 @@ const diffAction = {
 	[ActionTypes.UNAUTHORIZED]: (state, action) => {
 		return {
 			...state,
-			...{ redirect: { from: action.from } }
+			...{ redirect: { from: action.from } , token: null}
+		}
+	},
+	[ActionTypes.LOG_OUT]: (state, action) => {
+		return {
+			...state,
+			...{token: null}
 		}
 	},
 	default: () => initialState

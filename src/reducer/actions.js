@@ -8,3 +8,7 @@ export function login(token){
 export function unauthorized(from) {
 	return {type: ActionTypes.UNAUTHORIZED, from}
 }
+
+export function logOut() {
+	return {type: ActionTypes.LOG_OUT}
+}

@@ -3,6 +3,7 @@ import { Form, Icon, Input, Button, Checkbox, PageHeader, Tag, Tabs, Statistic, 
 import './index.css'
 import { Redirect } from 'react-router'
 import store from '../../reducer/index'
+import {withRouter} from 'react-router'
 
 class Login extends React.Component {
   constructor(props) {
@@ -30,6 +31,7 @@ class Login extends React.Component {
                   const storage = window.localStorage;
                   storage.token = body.token;
                   console.log(storage.toke)
+                  this.props.history.goBack()
                 })
                 break;
               default:
@@ -45,7 +47,8 @@ class Login extends React.Component {
 
   render() {
     const { getFieldDecorator } = this.props.form;
-    if (store.getState().token) return (<Redirect to='/index' />)
+    console.log(store.getState().token)
+    // if (store.getState().token) return (<Redirect to='/index' />)
     return (
       <div className='wholeBk'>
         <div className='loginPad'>
@@ -94,6 +97,6 @@ class Login extends React.Component {
   }
 }
 
-const WrappedLogin = Form.create({ name: 'normal_login' })(Login);
+const WrappedLogin = Form.create({ name: 'normal_login' })(withRouter(Login));
 
 export default WrappedLogin

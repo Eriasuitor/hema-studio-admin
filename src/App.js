@@ -1,12 +1,15 @@
-import { Menu, Icon, Switch, Col, Row, Layout } from 'antd';
+import { Menu, Icon, Col, Row, Layout } from 'antd';
 import React from 'react';
-import { BrowserRouter as Router, Route, Link } from "react-router-dom";
+import { BrowserRouter as Router, Route, Link, Switch } from "react-router-dom";
 import Homepage from './containers/homepage';
 import Dashboard from './containers/dashboard';
 import Member from './containers/member'
+import Profile from './containers/profile'
 import Login from './containers/login';
 import { withRouter } from "react-router-dom";
 import PropTypes from "prop-types";
+import store from './reducer/index'
+import {login} from './reducer/actions'
 const { Header, Footer, Sider, Content } = Layout;
 
 class App extends React.Component {
@@ -17,6 +20,11 @@ class App extends React.Component {
     mode: 'inline',
     theme: 'light',
   };
+
+  constructor(props){
+    super(props)
+    store.dispatch(login(window.localStorage.token))
+  }
 
   changeMode = value => {
     this.setState({
@@ -70,9 +78,12 @@ class App extends React.Component {
             <SideBar />
             <Layout style={{ padding: '24px 24px 24px' }}>
               <Content>
-              <Route path="/index" component={Dashboard} />
-                <Route path="/login" component={Login} />
-                <Route path="/member" component={Member} />
+                <Switch>
+                  <Route path="/index" component={Dashboard} />
+                  <Route path="/member/:userId" component={Profile} />
+                  <Route path="/login" component={Login} />
+                  <Route path="/member" component={Member} />
+                </Switch>
               </Content>
             </Layout>
           </Layout>

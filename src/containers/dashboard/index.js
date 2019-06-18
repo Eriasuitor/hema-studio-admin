@@ -47,7 +47,6 @@ class Member extends React.Component {
             </Card>
           </Col>
         ))}
-
       </Row>
     ))
     return (
