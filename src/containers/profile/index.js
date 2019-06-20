@@ -3,24 +3,32 @@ import { BrowserRouter as Router, Route, Link } from "react-router-dom";
 import store from '../../reducer/index'
 import { Redirect } from 'react-router'
 import { unauthorized, login } from '../../reducer/actions'
-import { PageHeader, Tag, Tabs, Button, Statistic, Table, Icon, Col, Descriptions, Drawer } from 'antd';
+import  NewEnrollmentPanel from '../newEnrollment'
+import {
+  PageHeader, Tag, Tabs, Button, Statistic, Table, Icon, Col, Descriptions, Drawer, Form,
+  Input,
+  Tooltip,
+  Cascader,
+  Select,
+  Row,
+  Checkbox,
+  AutoComplete,
+  InputNumber
+} from 'antd';
 import { getMembers } from '../../request'
 import { withRouter } from 'react-router'
 import * as moment from 'moment'
 import * as request from '../../request'
 
-const Description = ({ term, children, span = 12 }) => (
-  <Col span={span}>
-    <div className="description">
-      <div className="term">{term}</div>
-      <div className="detail">{children}</div>
-    </div>
-  </Col>
-);
+const { Option } = Select;
+const AutoCompleteOption = AutoComplete.Option;
 
 class Profile extends React.Component {
   state = {
-    newEnrollment:{
+    confirmDirty: false,
+    autoCompleteResult: [],
+    showNewEnrollmentPanel: true,
+    newEnrollment: {
       visible: true,
     },
     mode: 'inline',
@@ -159,10 +167,62 @@ class Profile extends React.Component {
     store.dispatch(login(window.localStorage.token))
   }
 
+  handleSubmit = e => {
+    e.preventDefault();
+    this.props.form.validateFieldsAndScroll((err, values) => {
+      if (!err) {
+        console.log('Received values of form: ', values);
+      }
+    });
+  };
+
+  handleConfirmBlur = e => {
+    const value = e.target.value;
+    this.setState({ confirmDirty: this.state.confirmDirty || !!value });
+  };
+
+  compareToFirstPassword = (rule, value, callback) => {
+    const form = this.props.form;
+    if (value && value !== form.getFieldValue('password')) {
+      callback('Two passwords that you enter is inconsistent!');
+    } else {
+      callback();
+    }
+  };
+
+  validateToNextPassword = (rule, value, callback) => {
+    const form = this.props.form;
+    if (value && this.state.confirmDirty) {
+      form.validateFields(['confirm'], { force: true });
+    }
+    callback();
+  };
+
+  handleWebsiteChange = value => {
+    let autoCompleteResult;
+    if (!value) {
+      autoCompleteResult = [];
+    } else {
+      autoCompleteResult = ['.com', '.org', '.net'].map(domain => `${value}${domain}`);
+    }
+    this.setState({ autoCompleteResult });
+  };
+
+  async queryCourses() {
+    let courses = await request.queryCourses(undefined, this.props.history)
+    this.setState({
+      courseOptions: courses.map(course => ({
+        label: course.name,
+        value: course.id
+      }))
+    })
+  }
+
   componentDidMount() {
     this.getProfile()
     this.queryEnrollments()
     this.queryCheckRecords()
+    this.queryCourses()
   }
 
   async confirmEnrollment(enrollmentId) {
@@ -204,7 +264,7 @@ class Profile extends React.Component {
     })
   }
 
-  showNewEnrollmentPanel(visible){
+  showNewEnrollmentPanel(visible) {
     this.setState({
       newEnrollment: {
         visible
@@ -253,6 +313,66 @@ class Profile extends React.Component {
   };
 
   render() {
+    const { getFieldDecorator } = this.props.form;
+    const { autoCompleteResult } = this.state;
+
+    const formItemLayout = {
+      labelCol: {
+        xs: { span: 20 },
+        sm: { span: 5 },
+      },
+      wrapperCol: {
+        xs: { span: 24 },
+        sm: { span: 16 },
+      },
+    };
+    const tailFormItemLayout = {
+      wrapperCol: {
+        xs: {
+          span: 24,
+          offset: 0,
+        },
+        sm: {
+          span: 16,
+          offset: 8,
+        },
+      },
+    };
+    const prefixSelector = getFieldDecorator('prefix', {
+      initialValue: '86',
+    })(
+      <Select style={{ width: 70 }}>
+        <Option value="86">+86</Option>
+        <Option value="87">+87</Option>
+      </Select>,
+    );
+
+    const websiteOptions = autoCompleteResult.map(website => (
+      <AutoCompleteOption key={website}>{website}</AutoCompleteOption>
+    ));
+
+    const loadData = selectedOptions => {
+      const targetOption = selectedOptions[selectedOptions.length - 1];
+      targetOption.loading = true;
+  
+      // load options lazily
+      setTimeout(() => {
+        targetOption.loading = false;
+        targetOption.children = [
+          {
+            label: `${targetOption.label} Dynamic 1`,
+            value: 'dynamic1',
+          },
+          {
+            label: `${targetOption.label} Dynamic 2`,
+            value: 'dynamic2',
+          },
+        ];
+        this.setState({
+          options: [...this.state.options],
+        });
+      }, 1000);
+    };
     const { TabPane } = Tabs;
     return (
       <PageHeader
@@ -300,42 +420,10 @@ class Profile extends React.Component {
           <Descriptions.Item label="状态">{this.state.userInfo.status === 'normal' ? '正常' : '禁用'}</Descriptions.Item>
           <Descriptions.Item label="创建时间">{moment(this.state.userInfo.createdAt).format('YYYY-MM-DD HH:mm')}</Descriptions.Item>
         </Descriptions>
-        <Drawer
-          title="新建报名单"
-          width={520}
-          closable={false}
-          onClose={this.showNewEnrollmentPanel.bind(this, false)}
-          visible={this.state.newEnrollment.visible}
-        >
-          <div
-            style={{
-              position: 'absolute',
-              bottom: 0,
-              width: '100%',
-              borderTop: '1px solid #e8e8e8',
-              padding: '10px 16px',
-              textAlign: 'right',
-              left: 0,
-              background: '#fff',
-              borderRadius: '0 0 4px 4px',
-            }}
-          >
-            <Button
-              style={{
-                marginRight: 8,
-              }}
-              onClick={this.showNewEnrollmentPanel.bind(this, false)}
-            >
-              取消
-            </Button>
-            <Button onClick={this.showNewEnrollmentPanel.bind(this, false)} type="primary">
-              确认
-            </Button>
-          </div>
-        </Drawer>
+      <NewEnrollmentPanel show={this.state.showNewEnrollmentPanel} onSubmit={(values) => {console.log(values)}}></NewEnrollmentPanel>
       </PageHeader>
     );
   }
 }
 
-export default withRouter(Profile)
+export default withRouter(Form.create({ name: 'register' })(Profile))

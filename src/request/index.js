@@ -60,3 +60,7 @@ export function queryEnrollments(query, history) {
 export function queryCheckRecords(query, history) {
 	return get(`/check-records`, query, history)
 }
+
+export function queryCourses(query, history) {
+	return get(`/courses`, query, history)
+}
