@@ -3,13 +3,17 @@ import { BrowserRouter as Router, Route, Link } from "react-router-dom";
 import store from '../../reducer/index'
 import { Redirect } from 'react-router'
 import { unauthorized, login } from '../../reducer/actions'
-import  NewEnrollmentPanel from '../newEnrollment'
+import NewEnrollmentPanel from '../newCheckRecord'
+import { EnrollmentStatus } from '../../common'
+
+import { formatToInteger } from '../../util'
 import {
   PageHeader, Tag, Tabs, Button, Statistic, Table, Icon, Col, Descriptions, Drawer, Form,
   Input,
   Tooltip,
   Cascader,
   Select,
+  Radio,
   Row,
   Checkbox,
   AutoComplete,
@@ -25,9 +29,11 @@ const AutoCompleteOption = AutoComplete.Option;
 
 class Profile extends React.Component {
   state = {
+    submitting: false,
     confirmDirty: false,
     autoCompleteResult: [],
-    showNewEnrollmentPanel: true,
+    showNewEnrollmentPanel: false,
+    showNewCheckRecordPanel: false,
     newEnrollment: {
       visible: true,
     },
@@ -44,13 +50,6 @@ class Profile extends React.Component {
     loading: false,
     checkRecordLoading: false
   };
-
-  enrollmentStatus = {
-    created: '待付款',
-    paid: '待确认',
-    confirmed: '已生效',
-    expired: '已过期'
-  }
 
   columns = [
     {
@@ -117,7 +116,7 @@ class Profile extends React.Component {
       title: '状态',
       sorter: true,
       dataIndex: 'status',
-      render: status => this.enrollmentStatus[status],
+      render: status => EnrollmentStatus[status],
       width: '5%'
     },
     {
@@ -163,15 +162,24 @@ class Profile extends React.Component {
 
   constructor(props) {
     super(props)
-    console.log('member: ' + window.localStorage.token)
     store.dispatch(login(window.localStorage.token))
   }
 
   handleSubmit = e => {
     e.preventDefault();
-    this.props.form.validateFieldsAndScroll((err, values) => {
+    this.props.form.validateFieldsAndScroll(async (err, values) => {
       if (!err) {
-        console.log('Received values of form: ', values);
+        this.setState({ submitting: true })
+        let enrollment = { ...values }
+        enrollment.pricePlanId = enrollment.courseAndPricePlanId[1]
+        delete enrollment.courseAndPricePlanId
+        let { success } = await request.addEnrollment(enrollment)
+        this.setState({ submitting: false })
+        if (success !== false) {
+          this.setState({ showNewEnrollmentPanel: false })
+          alert('新建报名报成功')
+          this.queryEnrollments()
+        }
       }
     });
   };
@@ -211,9 +219,14 @@ class Profile extends React.Component {
   async queryCourses() {
     let courses = await request.queryCourses(undefined, this.props.history)
     this.setState({
-      courseOptions: courses.map(course => ({
+      courseOptions: courses.rows.map(course => ({
         label: course.name,
-        value: course.id
+        value: course.id,
+        children: course.pricePlans.map(pricePlan => ({
+          label: `${pricePlan.class}课时(¥${pricePlan.price})`,
+          class: pricePlan.class,
+          value: pricePlan.id
+        }))
       }))
     })
   }
@@ -265,10 +278,15 @@ class Profile extends React.Component {
   }
 
   showNewEnrollmentPanel(visible) {
+    console.log(visible)
+    this.setState(state => ({
+      showNewEnrollmentPanel: visible
+    }));
+  }
+
+  handleClose() {
     this.setState({
-      newEnrollment: {
-        visible
-      }
+      showNewCheckRecordPanel: false
     })
   }
 
@@ -284,6 +302,16 @@ class Profile extends React.Component {
       orderBy: sorter.field,
       isDesc: sorter.order === 'descend' ? true : false,
     })
+  }
+
+  async addCheckRecord(checkRecord) {
+    delete checkRecord.courseId
+    let { success } = await request.addCheckRecord(checkRecord, this.props.history, { 428: () => '该用户已使用指定报名表在此签到表签到' })
+    if (success) {
+      this.setState({ showNewCheckRecordPanel: false })
+      alert('添加签到表成功')
+      this.queryCheckRecords()
+    }
   }
 
   handleTableChange = (pagination, filters, sorter) => {
@@ -313,6 +341,7 @@ class Profile extends React.Component {
   };
 
   render() {
+    const showNewEnrollmentPanel = this.state.showNewEnrollmentPanel
     const { getFieldDecorator } = this.props.form;
     const { autoCompleteResult } = this.state;
 
@@ -338,14 +367,6 @@ class Profile extends React.Component {
         },
       },
     };
-    const prefixSelector = getFieldDecorator('prefix', {
-      initialValue: '86',
-    })(
-      <Select style={{ width: 70 }}>
-        <Option value="86">+86</Option>
-        <Option value="87">+87</Option>
-      </Select>,
-    );
 
     const websiteOptions = autoCompleteResult.map(website => (
       <AutoCompleteOption key={website}>{website}</AutoCompleteOption>
@@ -354,7 +375,7 @@ class Profile extends React.Component {
     const loadData = selectedOptions => {
       const targetOption = selectedOptions[selectedOptions.length - 1];
       targetOption.loading = true;
-  
+
       // load options lazily
       setTimeout(() => {
         targetOption.loading = false;
@@ -380,7 +401,8 @@ class Profile extends React.Component {
         title="个人信息"
         subTitle={this.props.match.params.userId}
         extra={[
-          <Button key="1" type='primary' onClick={this.showNewEnrollmentPanel.bind(this, true)}>新增报名单</Button>
+          <Button key="1" type='primary' onClick={this.showNewEnrollmentPanel.bind(this, true)}>新增报名单</Button>,
+          <Button key="2" onClick={() => this.setState({ showNewCheckRecordPanel: true })}>新增签到</Button>
         ]}
         footer={
           <Tabs defaultActiveKey="1">
@@ -411,7 +433,7 @@ class Profile extends React.Component {
           </Tabs>
         }
       >
-        <Descriptions title="账户信息">
+        <Descriptions title='账户信息'>
           <Descriptions.Item label="学号">{this.state.userInfo.id}</Descriptions.Item>
           <Descriptions.Item label="昵称">{this.state.userInfo.nickname || '未知'}</Descriptions.Item>
           <Descriptions.Item label="手机">{this.state.userInfo.phone || '未知'}</Descriptions.Item>
@@ -420,7 +442,125 @@ class Profile extends React.Component {
           <Descriptions.Item label="状态">{this.state.userInfo.status === 'normal' ? '正常' : '禁用'}</Descriptions.Item>
           <Descriptions.Item label="创建时间">{moment(this.state.userInfo.createdAt).format('YYYY-MM-DD HH:mm')}</Descriptions.Item>
         </Descriptions>
-      <NewEnrollmentPanel show={this.state.showNewEnrollmentPanel} onSubmit={(values) => {console.log(values)}}></NewEnrollmentPanel>
+        <Drawer
+          title="新建报名单"
+          width={520}
+          closable={false}
+          onClose={this.showNewEnrollmentPanel.bind(this, false)}
+          visible={this.state.showNewEnrollmentPanel}
+        >
+          {this.state.show}
+          {/* <WrappedNewEnrollment></WrappedNewEnrollment> */}
+          <Form {...formItemLayout} onSubmit={this.handleSubmit}>
+            <Form.Item label="学号">
+              {getFieldDecorator('userId', {
+                initialValue: this.state.userInfo.id,
+                rules: [
+                  { required: true, message: '请输入学号' },
+                  { type: 'number', min: 1000, max: 9999, message: '学号为4为数字' },
+                ],
+                getValueFromEvent: formatToInteger()
+              })(<Input />)}
+            </Form.Item>
+            <Form.Item label="姓名">
+              {getFieldDecorator('name', {
+                initialValue: this.state.userInfo.nickname,
+                rules: [
+                  { required: true, message: '请输入报名人姓名' },
+                  { max: 32, message: '用户姓名最长为32位' }
+                ]
+              })(<Input />)}
+            </Form.Item>
+            <Form.Item label="性别">
+              {getFieldDecorator('gender', {
+                initialValue: 'female',
+                rules: [
+                  { required: true, message: '请选择性别' },
+                ],
+              })(<Radio.Group >
+                <Radio value='male'>男</Radio>
+                <Radio value='female'>女</Radio>
+              </Radio.Group>)}
+            </Form.Item>
+            <Form.Item
+              label="手机号" >
+              {getFieldDecorator('phone', {
+                initialValue: this.state.userInfo.phone,
+                rules: [
+                  { required: true, message: '请输入手机号' },
+                  { pattern: /^\d{6,15}$/, message: '手机号均为数字且准许长度为6-15位' }
+                ],
+                getValueFromEvent: (event) => {
+                  return event.target.value.replace(/\D/g, '')
+                }
+              })(<Input />)}
+            </Form.Item>
+            <Form.Item label="课程及方案">
+              {getFieldDecorator('courseAndPricePlanId', {
+                rules: [
+                  { type: 'array', required: true, message: '请选择课程及付费方案' },
+                ],
+              })(<Cascader placeholder='' onChange={(value, object) => {
+                this.setState({ maxClassBalance: object[1].class })
+              }} options={this.state.courseOptions} />)}
+            </Form.Item>
+            <Form.Item label="剩余课时">
+              {getFieldDecorator('classBalance', {
+                initialValue: this.state.maxClassBalance,
+                rules: [
+                  { required: true, message: '请设置剩余课时' },
+                  {
+                    type: 'number', min: 0, max: this.state.maxClassBalance, message: `此字段需为自然数(0或正整数)${this.state.maxClassBalance ? `且不得大于${this.state.maxClassBalance}` : ''}`
+                  }
+                ],
+              })(<InputNumber min={0} />)}
+            </Form.Item>
+            <Form.Item label="状态">
+              {getFieldDecorator('status', {
+                initialValue: 'created',
+                rules: [
+                  { required: true, message: '请选择报名报状态' }
+                ],
+              })(<Radio.Group defaultValue={EnrollmentStatus.created}>
+                {Object.keys(EnrollmentStatus).map(status => <Radio.Button value={status}>{EnrollmentStatus[status]}</Radio.Button>)}
+              </Radio.Group>)}
+
+            </Form.Item>
+            {/* <Form.Item> */}
+
+            <div
+              style={{
+                position: 'absolute',
+                bottom: 0,
+                width: '100%',
+                borderTop: '1px solid #e8e8e8',
+                padding: '10px 16px',
+                textAlign: 'right',
+                left: 0,
+                background: '#fff',
+                borderRadius: '0 0 4px 4px',
+              }}
+            >
+              <Button
+                style={{
+                  marginRight: 8,
+                }}
+                onClick={this.showNewEnrollmentPanel.bind(this, false)}
+              >
+                取消
+            </Button>
+              <Button style={{ marginRight: 8 }} onClick={() => this.props.form.resetFields()}>
+                重置
+            </Button>
+              <Button type="primary" htmlType="submit" loading={this.state.submitting}>
+                确认
+            </Button>
+            </div>
+            {/* </Form.Item> */}
+          </Form>
+        </Drawer>
+        <NewEnrollmentPanel userInfo={this.state.userInfo} show={this.state.showNewCheckRecordPanel} onSubmit={this.addCheckRecord.bind(this)} onClose={this.handleClose.bind(this)}></NewEnrollmentPanel>
+        {/* <NewEnrollmentPanel show={this.state.showNewEnrollmentPanel} onSubmit={(values) => {console.log(values)}} onClose={this.showNewEnrollmentPanel.bind(this, false)}></NewEnrollmentPanel> */}
       </PageHeader>
     );
   }

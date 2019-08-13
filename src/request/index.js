@@ -1,47 +1,73 @@
 import reqwest from 'reqwest'
 import config from '../config/index'
 import store from '../reducer/index'
-import {logOut} from '../reducer/actions'
+import { logOut } from '../reducer/actions'
 
 const diffStatusAction = {
 	500: () => {
-		alert('服务器出现意料之外的错误')
+		return '服务器出现意料之外的错误'
 	},
 	403: () => {
-		alert('权限不足')
+		return '权限不足'
 	},
 	401: (history) => {
-		alert('请登录')
 		const storage = window.localStorage;
 		storage.token = null;
 		store.dispatch(logOut())
 		history.push('/login')
+		return '请登录'
 	},
 	400: () => {
-		alert('请求数据不合法')
+		return '请求数据不合法'
+	},
+	404: () => {
+		return '功能已被迁移或永久移除'
 	}
 }
 
-export function responseStatusHandle(error, history){
-	console.log(error.status)
-	if(error.status){
-		diffStatusAction[error.status](history)
+export function responseStatusHandle(res, history, statusHandler = {}) {
+	if (res.status < 200 || res.status >= 300) {
+		console.log(statusHandler)
+		console.log(res.status)
+		const handler = statusHandler[res.status]
+		console.log(handler)
+		res.handleMessage = handler? statusHandler[res.status](): diffStatusAction[res.status](history)
+		console.log(handler? statusHandler[res.status](): diffStatusAction[res.status](history))
+		console.log(res)
+		const error = new Error()
+		error.res = res
+		throw error
 	}
-	else{
-		alert('服务器失联，请稍后再试，如果此问题一直未能得到修复，请联系我们。')
-	}
+	return res.json()
 }
 
-export async function get(url, query = {}, history){
-	let res = await reqwest({
-		url: `${config.host}${url}?${Object.keys(query).map(key => query[key] === undefined? '' : `${key}=${query[key]}`).join('&')}`,
+export function handleError(err) {
+	let {res} = err
+	alert((res && res.handleMessage) || ((res && res.status && '出现未能处理的错误，请告知我们，我们将尽快修复') || '服务器失联，请稍后再试，如果此问题一直未能得到修复，请联系我们。'))
+	return {success: false}
+}
+
+export async function get(url, query = {}, history, statusHandler) {
+	Object.keys(query).forEach(key => (query[key] === undefined || query[key].length === 0) && delete query[key])
+	let body = await fetch(`${config.host}${url}?${Object.keys(query).map(key => query[key] === undefined ? '' : `${key}=${query[key]}`).join('&')}`, {
 		method: 'GET',
-		type: 'json',
 		headers: {
 			Authorization: `Bearer ${store.getState().token}`
 		}
-	}).catch(err => responseStatusHandle(err, history))
-	return res
+	}).then(res => responseStatusHandle(res, history, statusHandler)).catch(handleError)
+	return body
+}
+
+export async function post(url, data = {}, history, statusHandler) {
+	let body = await fetch(`${config.host}${url}`, {
+		body: JSON.stringify(data),
+		method: 'POST',
+		headers: {
+			Authorization: `Bearer ${store.getState().token}`,
+			'Content-Type': 'application/json',
+		}
+	}).then(res => responseStatusHandle(res, history, statusHandler)).catch(handleError)
+	return body
 }
 
 
@@ -51,6 +77,10 @@ export function getMembers(query, history) {
 
 export function getUserInfo(userId, history) {
 	return get(`/users/${userId}`, undefined, history)
+}
+
+export function getCourse(courseId, history) {
+	return get(`/courses/${courseId}`, undefined, history)
 }
 
 export function queryEnrollments(query, history) {
@@ -63,4 +93,24 @@ export function queryCheckRecords(query, history) {
 
 export function queryCourses(query, history) {
 	return get(`/courses`, query, history)
+}
+
+export function addEnrollment(data, history) {
+	let { userId } = data
+	delete data.userId
+	return post(`/users/${userId}/enrollments`, data, history)
+}
+
+export function queryCheckDesks(query, history) {
+	return get(`/check-desks`, query, history)
+}
+
+export function addCheckRecord(data, history, statusHandler) {
+	let { checkDeskId } = data
+	delete data.checkDeskId
+	return post(`/check-desks/${checkDeskId}/check-records`, data, history, statusHandler)
+}
+
+export function addUser(data, history, statusHandler) {
+	return post(`/users`, data, history, statusHandler)
 }

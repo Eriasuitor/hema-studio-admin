@@ -4,6 +4,8 @@ import { BrowserRouter as Router, Route, Link, Switch } from "react-router-dom";
 import Homepage from './containers/homepage';
 import Dashboard from './containers/dashboard';
 import Member from './containers/member'
+import Course from './containers/course'
+import CourseDetail from './containers/courseDetail'
 import Profile from './containers/profile'
 import Login from './containers/login';
 import { withRouter } from "react-router-dom";
@@ -55,7 +57,7 @@ class App extends React.Component {
             <Icon type="mail" />
             学员管理
         </Menu.Item>
-          <Menu.Item key="3">
+          <Menu.Item key="3"  onClick={() => history.push("/courses")}>
             <Icon type="calendar" />
             课程管理
      </Menu.Item>
@@ -83,6 +85,8 @@ class App extends React.Component {
                   <Route path="/member/:userId" component={Profile} />
                   <Route path="/login" component={Login} />
                   <Route path="/member" component={Member} />
+                  <Route path="/courses/:courseId" component={CourseDetail} />
+                  <Route path="/courses" component={Course} />
                 </Switch>
               </Content>
             </Layout>
