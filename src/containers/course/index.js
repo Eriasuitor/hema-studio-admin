@@ -84,7 +84,7 @@ class App extends React.Component {
     },
     queryCondition: { },
     loadingCourses: false,
-    showNewUser: false
+    showNewUser: true
   };
 
   columns = [
@@ -199,10 +199,7 @@ class App extends React.Component {
           size="small"
           style={{ backgroundColor: 'white', padding: '24px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}
         />
-        <NewCourse show={this.state.showNewUser} onClose={() => this.setState({ showNewUser: false })} onSubmitted={() => {
-          this.setState({ showNewUser: false })
-          this.fetch()
-        }}></NewCourse>
+        <NewCourse show={this.state.showNewUser} onClose={() => this.setState({ showNewUser: false })}></NewCourse>
       </PageHeader>
     );
   }

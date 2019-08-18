@@ -1,6 +1,7 @@
 import React from 'react';
 import { BrowserRouter as Router, Route, Link } from "react-router-dom";
 import store from '../../reducer/index'
+import * as lodash from 'lodash'
 import { Redirect } from 'react-router'
 import { unauthorized, login } from '../../reducer/actions'
 import { formatToInteger } from '../../util'
@@ -14,7 +15,10 @@ import {
   Checkbox,
   InputNumber,
   Radio,
-  List
+  List,
+  Upload, Modal,
+  Typography,
+  Switch
 } from 'antd';
 import { getMembers } from '../../request'
 import { withRouter } from 'react-router'
@@ -22,9 +26,12 @@ import * as moment from 'moment'
 import * as request from '../../request'
 import { EnrollmentStatus } from '../../common';
 import { thisExpression } from '@babel/types';
+import { InputList } from '../../components/form'
+import { ImageCard } from '../../components/imageCard'
 
 const { Option } = Select;
 const { TextArea } = Input
+const { Paragraph } = Typography;
 
 class NewCourse extends React.Component {
   state = {
@@ -34,6 +41,18 @@ class NewCourse extends React.Component {
       visible: true,
     },
     courses: [],
+    course: {
+      name: 'this is the name',
+      description: 'this is the desc',
+      presents: [{
+        name: 'iPhone X',
+        amount: 0
+      }],
+      aims: ['add one', 'to be a better man'],
+      for: ['you'],
+      supportAudition: false
+    },
+    statusDescription: '确认',
     mode: 'inline',
     theme: 'light',
     userInfo: {},
@@ -50,7 +69,7 @@ class NewCourse extends React.Component {
     loading: false,
     checkRecordLoading: false,
     showNewCourse: true,
-    showPricePlanPanel: true
+    showPricePlanPanel: false
   };
 
   constructor(props) {
@@ -59,23 +78,6 @@ class NewCourse extends React.Component {
     store.dispatch(login(window.localStorage.token))
     this.handleClose = this.handleClose.bind(this)
   }
-
-  handleSubmit = e => {
-    e.preventDefault();
-    this.props.form.validateFieldsAndScroll(async (err, values) => {
-      if (!err) {
-        this.setState({ submitting: true })
-        delete values.courseId
-        let { success } = await request.addCheckRecord(values, this.props.history, { 428: () => '该用户已使用指定报名表在此签到表签到' })
-        this.setState({ submitting: false })
-        if (success) {
-          this.setState({ showNewCheckRecordPanel: false })
-          alert('添加签到表成功')
-          this.queryCheckRecords()
-        }
-      }
-    });
-  };
 
   handleClose = e => {
     e.preventDefault()
@@ -139,8 +141,77 @@ class NewCourse extends React.Component {
     this.queryCourses()
   }
 
+  getFieldDecorator = this.props.form.getFieldDecorator
+
+  createCourse(e) {
+    e.preventDefault();
+    this.props.form.validateFieldsAndScroll(async (err, values) => {
+      if (!err) {
+        this.setState({ submitting: true });
+        ['aims', 'for', 'presents', 'pricePlans'].forEach(field => {
+          const counter = `${field}Counter`
+          values[field] = values[counter].map(index => values[field][index])
+          delete values[counter]
+        })
+        values.status = 'normal'
+        values.supportAudition = true
+        this.setState({ statusDescription: '获取上传链接' })
+        const originFileObjList = []
+        const fileInfos = []
+        // const coverImage = values.images[values.cover]
+        // lodash.pullAt(values.images, values.cover)
+        // delete values.cover
+        // values.images.unshift(coverImage)
+        values.images.forEach(image => {
+          originFileObjList.push(image.originFileObj)
+          fileInfos.push({
+            fileName: image.name,
+            fileType: image.type,
+            size: image.size,
+            lastModified: image.lastModified,
+          })
+        })
+        const urls = await request.getOssUrls({ type: 'cover', fileInfos }, this.props.history)
+        this.setState({ statusDescription: '上传图片' })
+        for(let i = 0; i < urls.length; i++) {
+          await request.postImage(urls[i].match(''), originFileObjList[i], this.props.history)
+        }
+        values.images = urls.map(url => url.match(/(^.*?)\?/)[1])
+        this.setState({ statusDescription: '创建课程' })
+        let course = await request.addCourse(values, this.props.history)
+        this.setState({ submitting: false, statusDescription: '确认' });
+        // this.setState({submitting: false})
+        // if(success !== false) {
+        //   alert('新增用户成功')
+        //   this.setState({show: false})
+        //   this.props.onSubmitted()
+        // }
+      }
+    });
+  };
+
+  getBase64(file) {
+    return new Promise((resolve, reject) => {
+      const reader = new FileReader();
+      reader.readAsDataURL(file);
+      reader.onload = () => resolve(reader.result);
+      reader.onerror = error => reject(error);
+    });
+  }
+
+  handlePreview = async file => {
+    if (!file.url && !file.preview) {
+      file.preview = await this.getBase64(file.originFileObj);
+    }
+
+    this.setState({
+      previewImage: file.url || file.preview,
+      previewVisible: true,
+    });
+  };
+
   render() {
-    const { getFieldDecorator } = this.props.form;
+    const { getFieldDecorator, getFieldValue } = this.props.form;
 
     const formItemLayout = {
       labelCol: {
@@ -156,83 +227,80 @@ class NewCourse extends React.Component {
     return (
       <Drawer
         title="新建课程"
-        width={520}
+        width={540}
         closable={false}
         onClose={this.props.onClose}
         visible={this.props.show}
       >
-        <Drawer
-          title="Two-level Drawer"
-          width={320}
-          closable={true}
-          onClose={() => this.setState({ showPricePlanPanel: false })}
-          visible={this.state.showPricePlanPanel}
+        <Form {...formItemLayout} onSubmit={this.createCourse.bind(this)}
+          style={{ marginBottom: '40px' }}
         >
-          <List
-            itemLayout="vertical"
-            size="large"
-            dataSource={[{ price: 100.11 }]}
-            footer={
-              <div>
-                <b>ant design</b> footer part
-      </div>
-            }
-            renderItem={item => (
-              <List.Item
-                key={item.title}
-              >
-                <List.Item.Meta
-                  title={<a href={item.price}>{item.title}</a>}
-                  description={item.description}
-                />
-                {item.content}
-              </List.Item>
-            )}
-          />
-        </Drawer>
-        {/* <WrappedNewEnrollment></WrappedNewEnrollment> */}
-        <Form {...formItemLayout} onSubmit={this.handleSubmit}>
-          <Form.Item label="名称">
+          <Form.Item label="名称" hasFeedback>
             {getFieldDecorator('name', {
-              // initialValue: this.props.userInfo.id,
               rules: [
                 { required: true, message: '请输入课程名称' },
                 { max: 36, message: '课程名称最长为36字' },
               ],
-            })(<Input />)}
+            })(<Input placeholder='课程名称' />)}
           </Form.Item>
           <Form.Item label="描述">
             {getFieldDecorator('description', {
               rules: [
                 { required: true, message: '请填写课程描述' },
+                { max: 255, message: '课程描述最长为255字' },
               ]
-            })(<TextArea
+            })(<TextArea placeholder='课程描述'
               autosize={{ minRows: 2 }}
             />)}
           </Form.Item>
-          <Form.Item label="礼物">
-            {getFieldDecorator('p', {
-              initialValue: this.state.enrollmentId,
+          <Form.Item label="介绍图片" extra="请至少添加一张图片作为封面图片。当存在多张图片时，图片会成倒序展示，即最后一张会展示在最前面（封面）。建议使用4:3高宽比的图片。">
+            {getFieldDecorator('images', {
+              initialValue: [],
               rules: [
-                { required: true, message: '请选择报名单' },
+                { required: true, message: '请至少添加一张封面图片' },
               ]
-            })(<Select>{
-              this.state.enrollments.map(enrollment => (
-                <Option key={enrollment.id} value={enrollment.id}>{enrollment.name}(余{enrollment.classBalance}课时)</Option>
-              ))}</Select>)}
+            })(
+              <ImageCard onChange={(fileList) => { console.log(fileList.length !== 0 && fileList[0].status) }}></ImageCard>
+            )}
           </Form.Item>
-          <Form.Item label="签到表">
-            {getFieldDecorator('checkDeskId', {
-              initialValue: this.state.checkDeskId,
+          {/* <Form.Item label="封面图片">
+            {getFieldDecorator('cover', {
               rules: [
-                { required: true, message: '请选择签到表' },
+                { required: true, message: '请选择封面图片' },
               ]
-            })(<Select>{
-              this.state.checkDesks.map(checkDesk => (
-                <Option key={checkDesk.id} value={checkDesk.id}>{moment(checkDesk.createdAt).format('YYYY-MM-DD HH:mm')} / {checkDesk.address}</Option>
-              ))}</Select>)}
-          </Form.Item>
-
+            })(
+              <Select placeholder="请选择封面图片" style={{ width: '90%' }} notFoundContent="清先添加介绍图片">
+                {
+                  getFieldValue('images').map((image, index) => <Option key={`cover${index}`} value={index}>{`图${index + 1}: ${image.name}`}</Option>)
+                }
+              </Select>,
+            )}
+          </Form.Item> */}
+          {/* <Form.Item label="支持试听">
+            {getFieldDecorator('supportAudition', {
+              valuePropName: 'checked',
+              initialValue: true
+            })(<Switch />)}
+          </Form.Item> */}
+          {/* <Form.Item label="状态">
+            {getFieldDecorator('status', {
+              initialValue: "normal",
+            })(
+              <Select placeholder="课程状态" style={{ width: '90%' }}>
+                <Option value="normal">接受报名</Option>
+                <Option value="disable">不可报名</Option>
+              </Select>,
+            )}
+          </Form.Item> */}
+          <InputList id="aims" label="课程目标" form={this.props.form} placeholder="课程目标" initialValue={this.state.course.aims} rules={[{ max: 1024, message: '课程目标最长为1024字' }]}></InputList>
+          <InputList id="for" label="适合对象" form={this.props.form} placeholder="目标用户" initialValue={this.state.course.for} rules={[{ max: 1024, message: '目标用户最长为1024字' }]}></InputList>
+          <InputList id="presents" label="赠品" form={this.props.form} multipleInputs={[{ placeholder: '赠品名称', rules: [{ max: 32, message: '课程目标最长为32字' }] }, { placeholder: '数量', rules: [] }]} initialValue={this.state.course.presents}></InputList>
+          <InputList id="pricePlans" placeholder="方案" mode="numbers" label="价格方案" required={true} form={this.props.form} multipleInputs={[
+            { id: 'price', precision: 2, min: 0, placeholder: '原价', prefix: '原价', suffix: '元', width: '44%', rules: [] },
+            { id: 'class', precision: 0, min: 0, placeholder: '课时', rules: [], prefix: '包含', suffix: '课时', width: '44%' },
+            { id: 'knockValue', precision: 2, min: 0, initialValue: 0, placeholder: '立减', rules: [], prefix: '立减', suffix: '元', width: '44%' },
+            { id: 'hitValue', precision: 1, min: 0, max: 10, initialValue: 0, placeholder: '折扣', rules: [], prefix: '折扣', suffix: '折', width: '44%' },
+          ]} initialValue={this.state.course.presents}></InputList>
           <div
             style={{
               position: 'absolute',
@@ -250,7 +318,7 @@ class NewCourse extends React.Component {
               style={{
                 marginRight: 8,
               }}
-              onClick={() => { }}
+              onClick={this.props.onClose}
             >
               取消
             </Button>
@@ -258,7 +326,7 @@ class NewCourse extends React.Component {
               重置
             </Button>
             <Button type="primary" htmlType="submit" loading={this.state.submitting}>
-              确认
+              {this.state.statusDescription}
             </Button>
           </div>
           {/* </Form.Item> */}

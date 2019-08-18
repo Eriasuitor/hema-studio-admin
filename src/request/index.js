@@ -27,13 +27,8 @@ const diffStatusAction = {
 
 export function responseStatusHandle(res, history, statusHandler = {}) {
 	if (res.status < 200 || res.status >= 300) {
-		console.log(statusHandler)
-		console.log(res.status)
 		const handler = statusHandler[res.status]
-		console.log(handler)
 		res.handleMessage = handler? statusHandler[res.status](): diffStatusAction[res.status](history)
-		console.log(handler? statusHandler[res.status](): diffStatusAction[res.status](history))
-		console.log(res)
 		const error = new Error()
 		error.res = res
 		throw error
@@ -44,6 +39,7 @@ export function responseStatusHandle(res, history, statusHandler = {}) {
 export function handleError(err) {
 	let {res} = err
 	alert((res && res.handleMessage) || ((res && res.status && '出现未能处理的错误，请告知我们，我们将尽快修复') || '服务器失联，请稍后再试，如果此问题一直未能得到修复，请联系我们。'))
+	throw err
 	return {success: false}
 }
 
@@ -69,7 +65,6 @@ export async function post(url, data = {}, history, statusHandler) {
 	}).then(res => responseStatusHandle(res, history, statusHandler)).catch(handleError)
 	return body
 }
-
 
 export function getMembers(query, history) {
 	return get('/users', query, history)
@@ -113,4 +108,23 @@ export function addCheckRecord(data, history, statusHandler) {
 
 export function addUser(data, history, statusHandler) {
 	return post(`/users`, data, history, statusHandler)
+}
+
+export function addCourse(data, history, statusHandler) {
+	return post(`/courses`, data, history, statusHandler)
+}
+
+export function getOssUrls(fileInfos, history, statusHandler) {
+	return post(`/cloud/oss/bulk-url-generator`, fileInfos, history, statusHandler)
+}
+
+export async function postImage(url, file, history, statusHandler) {
+	return fetch(url, {
+		body: file,
+		method: 'PUT',
+		headers: {
+			'Content-Type': 'application/octet-stream',
+		},
+		mode: 'cors'
+	})
 }
