@@ -46,6 +46,22 @@ class ImageCard extends React.Component {
 		fileList: []
 	}
 
+	componentWillMount() {
+		if (this.props.initialValue) {
+			this.setState({
+				fileList: this.props.initialValue.map(
+					(url, index) => ({
+						uid: index,
+						name: 'xxx.png',
+						status: 'done',
+						url: url,
+						thumbUrl: url,
+					})
+				)
+			})
+		}
+	}
+
 	getBase64(file) {
 		return new Promise((resolve, reject) => {
 			const reader = new FileReader();
@@ -82,6 +98,7 @@ class ImageCard extends React.Component {
 				beforeUpload={() => false}
 				onChange={this.handleChange}
 				multiple={true}
+				
 			>
 				<div>
 					<Icon type="plus" />

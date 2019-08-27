@@ -6,5 +6,6 @@
 		"autosize",
 		"deepmerge",
 		"reqwest"
-	]
+	],
+	"workbench.colorTheme": "Default Light+"
 }

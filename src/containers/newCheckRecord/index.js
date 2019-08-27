@@ -4,53 +4,20 @@ import store from '../../reducer/index'
 import { Redirect } from 'react-router'
 import { unauthorized, login } from '../../reducer/actions'
 import { formatToInteger } from '../../util'
-import {
-  PageHeader, Tag, Tabs, Button, Statistic, Table, Icon, Col, Descriptions, Drawer, Form,
-  Input,
-  Tooltip,
-  Cascader,
-  Select,
-  Row,
-  Checkbox,
-  InputNumber,
-  Radio
-} from 'antd';
-import { getMembers } from '../../request'
-import { withRouter } from 'react-router'
+import { Button, Drawer, Form, Input, Select, } from 'antd';
 import * as moment from 'moment'
 import * as request from '../../request'
-import { EnrollmentStatus } from '../../common';
 
 const { Option } = Select;
 
-class NewEnrollmentPanel extends React.Component {
+class NewCheckRecord extends React.Component {
   state = {
-    confirmDirty: false,
-    autoCompleteResult: [],
-    newEnrollment: {
-      visible: true,
-    },
-    courses: [],
-    mode: 'inline',
-    theme: 'light',
-    userInfo: {},
-    enrollments: [],
-    checkDesks: [],
-    enrollmentId: null,
-    checkDeskId: null,
-    pagination: {
-      pageSize: 10
-    },
-    checkRecordPagination: {
-      pageSize: 10
-    },
-    loading: false,
-    checkRecordLoading: false
+    submit: false,
+    course: {}
   };
 
   constructor(props) {
     super(props)
-    console.log('member: ' + window.localStorage.token)
     store.dispatch(login(window.localStorage.token))
     this.handleClose = this.handleClose.bind(this)
   }
@@ -59,12 +26,12 @@ class NewEnrollmentPanel extends React.Component {
     e.preventDefault();
     this.props.form.validateFieldsAndScroll(async (err, values) => {
       if (!err) {
-        this.setState({submitting: true})
+        this.setState({ submitting: true })
         delete values.courseId
-        let {success} = await request.addCheckRecord(values, this.props.history, {428: () => '该用户已使用指定报名表在此签到表签到'})
-        this.setState({submitting: false})
-        if(success) {
-          this.setState({showNewCheckRecordPanel: false})
+        let { success } = await request.addCheckRecord(values, this.props.history, { 428: () => '该用户已使用指定报名表在此签到表签到' })
+        this.setState({ submitting: false })
+        if (success) {
+          this.setState({ showNewCheckRecordPanel: false })
           alert('添加签到表成功')
           this.queryCheckRecords()
         }
@@ -150,17 +117,16 @@ class NewEnrollmentPanel extends React.Component {
 
     return (
       <Drawer
-        title="新建报名单"
+        title="新建签到表"
         width={520}
         closable={false}
         onClose={this.props.onClose}
         visible={this.props.show}
       >
-        {/* <WrappedNewEnrollment></WrappedNewEnrollment> */}
         <Form {...formItemLayout} onSubmit={this.handleSubmit}>
-          <Form.Item label="学号">
+          <Form.Item label="课程">
             {getFieldDecorator('userId', {
-              initialValue: this.props.userInfo.id,
+              initialValue: this.props.course.id,
               rules: [
                 { required: true, message: '请输入学号' },
                 { type: 'number', min: 1000, max: 9999, message: '学号为4为数字' },
@@ -237,4 +203,4 @@ class NewEnrollmentPanel extends React.Component {
   }
 }
 
-export default Form.create({ name: 'register' })(NewEnrollmentPanel)
+export default Form.create({ name: 'register' })(NewCheckRecord)

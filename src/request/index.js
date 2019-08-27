@@ -2,6 +2,7 @@ import reqwest from 'reqwest'
 import config from '../config/index'
 import store from '../reducer/index'
 import { logOut } from '../reducer/actions'
+import { message } from 'antd'
 
 const diffStatusAction = {
 	500: () => {
@@ -18,7 +19,7 @@ const diffStatusAction = {
 		return '请登录'
 	},
 	400: () => {
-		return '请求数据不合法'
+		return '提交的数据不合法'
 	},
 	404: () => {
 		return '功能已被迁移或永久移除'
@@ -27,20 +28,22 @@ const diffStatusAction = {
 
 export function responseStatusHandle(res, history, statusHandler = {}) {
 	if (res.status < 200 || res.status >= 300) {
-		const handler = statusHandler[res.status]
-		res.handleMessage = handler? statusHandler[res.status](): diffStatusAction[res.status](history)
-		const error = new Error()
+		const handler = statusHandler[res.status] || diffStatusAction[res.status]
+		res.handleMessage = handler ? handler() : ""
+		const error = new Error(res.message)
 		error.res = res
 		throw error
+
+	} else if ([204, 205].includes(res.status)) {
+		return null
 	}
 	return res.json()
 }
 
 export function handleError(err) {
-	let {res} = err
-	alert((res && res.handleMessage) || ((res && res.status && '出现未能处理的错误，请告知我们，我们将尽快修复') || '服务器失联，请稍后再试，如果此问题一直未能得到修复，请联系我们。'))
+	let { res } = err
+	message.warning((res && res.handleMessage) || ((res && res.status && '出现未能处理的错误，请告知我们，我们将尽快修复') || '服务器失联，请稍后再试，如果此问题一直未能得到修复，请联系我们。'))
 	throw err
-	return {success: false}
 }
 
 export async function get(url, query = {}, history, statusHandler) {
@@ -49,6 +52,18 @@ export async function get(url, query = {}, history, statusHandler) {
 		method: 'GET',
 		headers: {
 			Authorization: `Bearer ${store.getState().token}`
+		}
+	}).then(res => responseStatusHandle(res, history, statusHandler)).catch(handleError)
+	return body
+}
+
+export async function put(url, data = {}, history, statusHandler) {
+	let body = await fetch(`${config.host}${url}`, {
+		body: JSON.stringify(data),
+		method: 'PUT',
+		headers: {
+			Authorization: `Bearer ${store.getState().token}`,
+			'Content-Type': 'application/json',
 		}
 	}).then(res => responseStatusHandle(res, history, statusHandler)).catch(handleError)
 	return body
@@ -112,6 +127,10 @@ export function addUser(data, history, statusHandler) {
 
 export function addCourse(data, history, statusHandler) {
 	return post(`/courses`, data, history, statusHandler)
+}
+
+export function updateCourse(courseId, data, history, statusHandler) {
+	return put(`/courses/${courseId}`, data, history, statusHandler)
 }
 
 export function getOssUrls(fileInfos, history, statusHandler) {

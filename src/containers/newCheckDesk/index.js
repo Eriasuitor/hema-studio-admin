@@ -4,27 +4,13 @@ import store from '../../reducer/index'
 import { Redirect } from 'react-router'
 import { unauthorized, login } from '../../reducer/actions'
 import { formatToInteger } from '../../util'
-import {
-  PageHeader, Tag, Tabs, Button, Statistic, Table, Icon, Col, Descriptions, Drawer, Form,
-  Input,
-  Tooltip,
-  Cascader,
-  Select,
-  Row,
-  Checkbox,
-  InputNumber,
-  Radio
-} from 'antd';
-import { getMembers } from '../../request'
-import { withRouter } from 'react-router'
+import { Button, Drawer, Form, Input, Select, } from 'antd';
 import * as moment from 'moment'
 import * as request from '../../request'
-import { AccountStatus } from '../../common';
-import { thisExpression } from '@babel/types';
 
 const { Option } = Select;
 
-class NewUser extends React.Component {
+class NewCheckRecord extends React.Component {
   state = {
     confirmDirty: false,
     autoCompleteResult: [],
@@ -59,14 +45,14 @@ class NewUser extends React.Component {
     e.preventDefault();
     this.props.form.validateFieldsAndScroll(async (err, values) => {
       if (!err) {
-        this.setState({submitting: true})
+        this.setState({ submitting: true })
         delete values.courseId
-        let {success} = await request.addUser(values, this.props.history, {428: () => '该用户已使用指定报名表在此签到表签到'})
-        this.setState({submitting: false})
-        if(success !== false) {
-          alert('新增用户成功')
-          this.setState({show: false})
-          this.props.onSubmitted()
+        let { success } = await request.addCheckRecord(values, this.props.history, { 428: () => '该用户已使用指定报名表在此签到表签到' })
+        this.setState({ submitting: false })
+        if (success) {
+          this.setState({ showNewCheckRecordPanel: false })
+          alert('添加签到表成功')
+          this.queryCheckRecords()
         }
       }
     });
@@ -78,12 +64,13 @@ class NewUser extends React.Component {
   }
 
   async queryCourses() {
-    let courses = await request.queryCourses({ pageSize: 10000 }, this.props.history)
-    this.setState({ courses })
+    let coursesResult = await request.queryCourses({ pageSize: 10000 }, this.props.history)
+    this.setState({ courses: coursesResult.rows })
   }
 
   async handleCourseChange(courseId) {
     let [enrollmentsResult, checkDesksResult] = await Promise.all([
+      request.queryEnrollments({ userId: this.props.userInfo.id, courseId, status: 'confirmed' }),
       request.queryCheckDesks({ courseId })
     ])
     let enrollmentId = null
@@ -149,57 +136,47 @@ class NewUser extends React.Component {
 
     return (
       <Drawer
-        title="新建报名单"
+        title="新增签到"
         width={520}
         closable={false}
         onClose={this.props.onClose}
         visible={this.props.show}
       >
+        {/* <WrappedNewEnrollment></WrappedNewEnrollment> */}
         <Form {...formItemLayout} onSubmit={this.handleSubmit}>
-          <Form.Item label="昵称">
-            {getFieldDecorator('nickname', {
+          <Form.Item label="课程">
+            {getFieldDecorator('courseId', {
               rules: [
-                { required: true, message: '请输入昵称' },
-                { max: 32, message: '昵称最长为32位' },
+                { required: true, message: '请选择课程' },
               ]
-            })(<Input></Input>)}
+            })(<Select
+              onChange={this.handleCourseChange.bind(this)}
+            >{
+                this.state.courses.map(course => (
+                  <Option key={course.id} value={course.id}>{course.id} / {course.name}</Option>
+                ))}</Select>)}
           </Form.Item>
-          <Form.Item label="性别">
-            {getFieldDecorator('gender', {
-              initialValue: 'female',
+          <Form.Item label="报名单">
+            {getFieldDecorator('enrollmentId', {
+              initialValue: this.state.enrollmentId,
               rules: [
-                { required: true, message: '请选择性别' },
+                { required: true, message: '请选择报名单' },
               ]
-            })(<Radio.Group >
-              <Radio value='male'>男</Radio>
-              <Radio value='female'>女</Radio>
-            </Radio.Group>)}
+            })(<Select>{
+              this.state.enrollments.map(enrollment => (
+                <Option key={enrollment.id} value={enrollment.id}>{enrollment.name}(余{enrollment.classBalance}课时)</Option>
+              ))}</Select>)}
           </Form.Item>
-          <Form.Item label="手机号">
-            {getFieldDecorator('phone', {
+          <Form.Item label="签到表">
+            {getFieldDecorator('checkDeskId', {
+              initialValue: this.state.checkDeskId,
               rules: [
-                { required: true, message: '请输入手机号' },
-                { pattern: /^\d{6,15}$/, message: '手机号均为数字且准许长度为6-15位' }
+                { required: true, message: '请选择签到表' },
               ]
-            })(<Input></Input>)}
-          </Form.Item>
-          <Form.Item label="密码">
-            {getFieldDecorator('password', {
-              rules: [
-                { required: true, message: '请输入密码' },
-                { max: 32, message: '密码最长为32位' },
-              ]
-            })(<Input></Input>)}
-          </Form.Item>
-          <Form.Item label="状态">
-            {getFieldDecorator('status', {
-              initialValue: 'normal',
-              rules: [
-                { required: true, message: '请选择状态' },
-              ]
-            })(<Radio.Group>
-              {Object.keys(AccountStatus).map(status => <Radio.Button value={status}>{AccountStatus[status]}</Radio.Button>)}
-            </Radio.Group>)}
+            })(<Select>{
+              this.state.checkDesks.map(checkDesk => (
+                <Option key={checkDesk.id} value={checkDesk.id}>{moment(checkDesk.createdAt).format('YYYY-MM-DD HH:mm')} / {checkDesk.address}</Option>
+              ))}</Select>)}
           </Form.Item>
           <div
             style={{
@@ -218,7 +195,7 @@ class NewUser extends React.Component {
               style={{
                 marginRight: 8,
               }}
-              onClick={this.props.onClose}
+              onClick={() => { }}
             >
               取消
             </Button>
@@ -236,4 +213,4 @@ class NewUser extends React.Component {
   }
 }
 
-export default Form.create({ name: 'register' })(NewUser)
+export default Form.create({ name: 'register' })(NewCheckRecord)

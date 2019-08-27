@@ -39,10 +39,20 @@ class InputList extends React.Component {
 		},
 	};
 
-	id = 1
+	id = 0
+
+	constructor(props) {
+		super(props)
+		if (this.props.initialValue) {
+			this.id = this.props.initialValue.length
+		}
+		if (this.props.min) {
+			this.id = this.props.min > this.id ? this.props.min : this.id
+		}
+	}
 
 	render() {
-		const { id, label, placeholder, addOneTip = '添加', form, required = false, multipleInputs, rules = [], mode } = this.props
+		const { id, label, note, placeholder, addOneTip = '添加', form, initialValue, required = false, multipleInputs, rules = [], mode } = this.props
 		const { setFieldsValue, getFieldDecorator, getFieldValue } = form
 		// const multipleInputs = [{
 		// 	id,
@@ -54,7 +64,7 @@ class InputList extends React.Component {
 		// 	after: '×',
 		// }]
 		const counter = `${id}Counter`
-		getFieldDecorator(counter, { initialValue: [] });
+		getFieldDecorator(counter, { initialValue: lodash.range(this.id) });
 		let keys = getFieldValue(counter);
 		return (<div> {keys.map((key, index) => (
 			<Form.Item
@@ -66,11 +76,11 @@ class InputList extends React.Component {
 			>
 				{
 					mode === "numbers" ? <span>
-						<div style={{ color: 'white', margin: '4.5px 0', display: 'flex', alignItems: 'center', padding: '4px 0 4px 8px', height: '30px', backgroundColor: 'rgb(63, 145, 247)', width: '90%', borderRadius: '4px' }}>
-							{`${placeholder || ''}${index + 1}`}
+						<div style={{ color: 'white', margin: '4.5px 0', display: 'flex', alignItems: 'center', padding: '4px 8px', height: '30px', backgroundColor: 'rgb(63, 145, 247)', width: '90%', borderRadius: '4px', justifyContent: 'space-between' }}>
+							<span style={{}}>{`${placeholder || ''}${index + 1}`}</span>
+							<span style={{float: 'right'}}>{note}</span>
 						</div>
 						{
-
 							multipleInputs.map((input, subIndex) =>
 								<Form.Item
 									key={`${key}${subIndex}`}
@@ -78,7 +88,7 @@ class InputList extends React.Component {
 								>
 									{getFieldDecorator(`${id}[${key}][${input.id}]`, {
 										validateTrigger: ['onChange', 'onBlur'],
-										initialValue: `${input.initialValue === undefined? '': input.initialValue}`,
+										...(initialValue && initialValue[key] ? { initialValue: initialValue[key][input.id] } : ({initialValue: input.initialValue} || {})),
 										getValueFromEvent: (e) => {
 											if (e.currentTarget.value === '') { return e.currentTarget.value }
 											if (e.currentTarget.value.includes('-')) {
@@ -92,8 +102,8 @@ class InputList extends React.Component {
 													return parseFloat(getFieldValue(`${id}[${key}][${input.id}]`)) || '';
 												}
 											}
+											const matched = e.currentTarget.value.match(/\./g)
 											if (input.precision > 0) {
-												const matched = e.currentTarget.value.match(/\./g)
 												if (matched && matched.length > 1) {
 													return parseFloat(getFieldValue(`${id}[${key}][${input.id}]`)) || '';
 												}
@@ -102,8 +112,10 @@ class InputList extends React.Component {
 												if (decimalLength !== -1 && decimalLength < e.currentTarget.value.length - input.precision - 1) {
 													return parseFloat(getFieldValue(`${id}[${key}][${input.id}]`)) || '';
 												}
+											}else {
+												if(matched) return parseFloat(getFieldValue(`${id}[${key}][${input.id}]`)) || '';
 											}
-											if(e.currentTarget.value.match(/\.0*$/)) {
+											if (e.currentTarget.value.match(/\.0*$/)) {
 												return e.currentTarget.value
 											}
 											const convertedValue = parseFloat(e.currentTarget.value)
@@ -136,6 +148,7 @@ class InputList extends React.Component {
 								>
 									{getFieldDecorator(`${id}[${key}].name`, {
 										validateTrigger: ['onChange', 'onBlur'],
+										...(initialValue && initialValue[key] ? { initialValue: initialValue[key].name } : {}),
 										rules: [
 											{
 												required: true,
@@ -150,6 +163,12 @@ class InputList extends React.Component {
 								<Form.Item style={{ display: 'inline-block', width: '22%', marginRight: '2%' }}>
 									{getFieldDecorator(`${id}[${key}].amount`, {
 										validateTrigger: ['onChange', 'onBlur'],
+										...(initialValue && initialValue[key] ? { initialValue: initialValue[key].amount } : {}),
+										getValueFromEvent: (e) => {
+											const value = parseInt(e.currentTarget.value)
+											if(isNaN(value)) return ''
+											return value
+										},
 										rules: [
 											{
 												required: true,
@@ -157,11 +176,12 @@ class InputList extends React.Component {
 											},
 											...multipleInputs[1].rules
 										],
-									})(<InputNumber placeholder={`${multipleInputs[1].placeholder}`} style={{ width: '100%' }} min={0} />)}
+									})(<Input placeholder={`${multipleInputs[1].placeholder}`} style={{ width: '100%' }} min={0} />)}
 								</Form.Item></span>
 						) :
 							getFieldDecorator(`${id}[${key}]`, {
 								validateTrigger: ['onChange', 'onBlur'],
+								...(initialValue ? { initialValue: initialValue[key] } : {}),
 								rules: [
 									{
 										required: true,
@@ -173,17 +193,20 @@ class InputList extends React.Component {
 							})(<Input placeholder={`${placeholder}${index + 1}`} style={{ width: '90%', marginRight: 8 }} />)
 				}
 
-				<Icon
-					title='删除此条目'
-					className="dynamic-delete-button"
-					type="minus-circle-o"
-					onClick={() => {
-						keys = keys.filter(_ => _ !== key)
-						setFieldsValue({
-							[counter]: keys
-						});
-					}}
-				/>
+				{
+					!this.props.min || keys.length > this.props.min ?
+						<Icon
+							title='删除此条目'
+							className="dynamic-delete-button"
+							type="minus-circle-o"
+							onClick={() => {
+								keys = keys.filter(_ => _ !== key)
+								setFieldsValue({
+									[counter]: keys
+								});
+							}}
+						/> : null
+				}
 			</Form.Item>
 		))}
 			<Form.Item
@@ -193,8 +216,6 @@ class InputList extends React.Component {
 			>
 				<Button type="dashed" onClick={() => {
 					keys.push(this.id++)
-					console.log('to change 2')
-					console.log(keys)
 					setFieldsValue({
 						[counter]: keys
 					});

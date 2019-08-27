@@ -6,11 +6,14 @@ import store from '../../reducer/index'
 import { Redirect } from 'react-router'
 import Highlighter from 'react-highlight-words';
 import { unauthorized, login } from '../../reducer/actions'
-import { PageHeader, Tag, Tabs, Button, Statistic, Row, Col } from 'antd';
-import { queryCourses } from '../../request'
+import { PageHeader, Tag, Tabs, Button, Modal, Row, Col } from 'antd';
+import * as request from '../../request'
 import { withRouter } from 'react-router'
 import NewCourse from '../newCourse'
 import * as moment from 'moment'
+import './index.css'
+
+const { confirm } = Modal
 
 class App extends React.Component {
 
@@ -44,19 +47,6 @@ class App extends React.Component {
     filterIcon: filtered => (
       <Icon type="search" style={{ color: filtered ? '#1890ff' : undefined }} />
     ),
-    // onFilter: async (value, record) => {
-    //   console.log('!!!!!!!!!!!!')
-    //   await this.fetch({...this.state.queryCondition, nickname: value})
-    //   console.log(record)
-    //   console.log(value)
-    //   console.log(dataIndex)
-    //   return true
-    //   // return !!record[dataIndex] && record[dataIndex]
-    //   //   .toString()
-    //   //   .toLowerCase()
-    //   //   .includes(value.toLowerCase())
-    // }
-    // ,
     onFilterDropdownVisibleChange: visible => {
       if (visible) {
         setTimeout(() => this.searchInput.select());
@@ -82,9 +72,10 @@ class App extends React.Component {
       showTotal: (total) => `共${total}条目`,
       total: 0
     },
-    queryCondition: { },
+    editingCourse: null,
+    queryCondition: {},
     loadingCourses: false,
-    showNewUser: true
+    showNewUser: true,
   };
 
   columns = [
@@ -98,44 +89,53 @@ class App extends React.Component {
     {
       title: '课程名称',
       sorter: true,
-      key: 'name',
       dataIndex: 'name',
-      width: '15%',
+      key: 'name',
+      width: '25%',
       ...this.getColumnSearchProps('name', '课程'),
     },
     {
       title: '描述',
       key: 'description',
       dataIndex: 'description',
-      width: '30%'
+      width: '35%',
     },
-    {
-      title: '支持试听',
-      sorter: true,
-      dataIndex: 'supportAudition',
-      render: supportAudition => supportAudition? '是' : '否' ,
-      width: '5%'
-    },
+    // {
+    //   title: '支持试听',
+    //   sorter: true,
+    //   dataIndex: 'supportAudition',
+    //   render: supportAudition => supportAudition? '是' : '否' ,
+    //   width: '5%'
+    // },
     {
       title: '状态',
       sorter: true,
       dataIndex: 'status',
       render: status => this.statusMapping[status],
-      width: '5%'
+      width: '10%'
     },
     {
       title: '创建时间',
       sorter: true,
       dataIndex: 'createdAt',
       render: date => moment(date).format('YYYY-MM-DD HH:mm'),
-      width: '12%',
-    }
+      width: '15%',
+    },
+    {
+      title: '操作',
+      key: 'operation',
+      width: '10%',
+      render: course => <span><a style={{ marginRight: '5px' }} onClick={this.showEdit.bind(this, course)}><Icon type="edit" /></a><a onClick={this.deleteCourse.bind(this, course)}><Icon type="delete" /></a></span>,
+    },
   ];
 
   statusMapping = {
     normal: '接受报名',
     disable: '不可报名'
   }
+
+  newCourseKey = 0
+  lastCourseId = 0
 
   componentDidMount() {
     this.queryCourses();
@@ -156,12 +156,37 @@ class App extends React.Component {
     this.queryCourses(queryCondition, this.props.history);
   };
 
+  showEdit = (course) => {
+    if (this.lastCourseId !== course.id) {
+      this.lastCourseId = course.id
+      this.setState({ editingCourse: course, newCourseKey: this.newCourseKey++ })
+    }
+    this.setState({ showNewUser: true })
+  }
+
+  showNewCourse = () => {
+    this.lastCourseId = 0
+    this.setState({ showNewUser: true, editingCourse: null, newCourseKey: this.newCourseKey++ })
+  }
+
+  deleteCourse = (course) => {
+    const {history} = this.props
+    const queryCourses = this.queryCourses
+    confirm({
+      title: `确定要删除“${course.name}”吗？`,
+      content: '课程不允许被完全删除，此操作仅会将课程状态更改为“不可报名”状态。',
+      onOk() {
+        return request.updateCourse(course.id, { status: 'disable' }, history).then(queryCourses)
+      },
+      onCancel() { },
+    });
+  }
+
   queryCourses = async () => {
     this.setState({ loadingCourses: true });
-    let courses = await queryCourses(this.state.queryCondition, this.props.history)
+    let courses = await request.queryCourses(this.state.queryCondition, this.props.history)
     const pagination = { ...this.state.pagination };
     pagination.total = courses.count;
-    console.log(courses.rows)
     this.setState({
       loadingCourses: false,
       courses: courses.rows,
@@ -185,7 +210,7 @@ class App extends React.Component {
       <PageHeader
         title="所有课程"
         extra={[
-          <Button key="1" type='primary' onClick={() => this.setState({ showNewUser: true })}>新建课程</Button>
+          <Button key="1" type='primary' onClick={this.showNewCourse.bind(this)}>新建课程</Button>
           // <Button key="2" onClick={() => this.setState({ showNewCheckRecordPanel: true })}>新增签到</Button>
         ]}
       >
@@ -197,9 +222,12 @@ class App extends React.Component {
           loading={this.state.loadingCourses}
           onChange={this.handleTableChange}
           size="small"
-          style={{ backgroundColor: 'white', padding: '24px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}
+          style={{ backgroundColor: 'white', padding: '24px' }}
         />
-        <NewCourse show={this.state.showNewUser} onClose={() => this.setState({ showNewUser: false })}></NewCourse>
+        <NewCourse key={this.state.newCourseKey} {...this.props} course={this.state.editingCourse} show={this.state.showNewUser} onClose={() => this.setState({ showNewUser: false })} onSuccess={() => {
+          this.setState({ showNewUser: false })
+          this.queryCourses()
+        }}></NewCourse>
       </PageHeader>
     );
   }
