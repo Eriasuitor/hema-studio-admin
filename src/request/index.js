@@ -111,6 +111,18 @@ export function addEnrollment(data, history) {
 	return post(`/users/${userId}/enrollments`, data, history)
 }
 
+/**
+ * 
+ * @param {{courseId: number, address?: string}} data 
+ * @param {*} history 
+ * @param {*} statusHandler 
+ */
+export function addCheckDesk( data, history, statusHandler) {
+	let { courseId } = data
+	delete data.courseId
+	return post(`/courses/${courseId}/check-desks`, data, history, statusHandler)
+}
+
 export function queryCheckDesks(query, history) {
 	return get(`/check-desks`, query, history)
 }

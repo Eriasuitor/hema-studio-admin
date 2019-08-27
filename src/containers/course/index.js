@@ -17,6 +17,11 @@ const { confirm } = Modal
 
 class App extends React.Component {
 
+  constructor(props) {
+    super(props)
+    store.dispatch(login(window.localStorage.token))
+  }
+
   getColumnSearchProps = (dataIndex, title) => ({
     filterDropdown: ({ setSelectedKeys, selectedKeys, confirm, clearFilters }) => (
       <div style={{ padding: 8 }}>

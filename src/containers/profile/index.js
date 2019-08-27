@@ -380,6 +380,12 @@ class Profile extends React.Component {
         </NewCheckRecord>
         <NewEnrollment
           show={this.state.showNewEnrollment}
+          enrollment={{
+            userId: this.state.userInfo.id,
+            phone: this.state.userInfo.phone,
+            name: this.state.userInfo.nickname,
+            gender: this.state.userInfo.gender,
+          }}
           onClose={() => this.setState({ showNewEnrollment: false })}
           onSuccess={() => {
             this.setState({ showNewEnrollment: false })

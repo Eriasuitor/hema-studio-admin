@@ -4,7 +4,7 @@ import store from '../../reducer/index'
 import { Redirect } from 'react-router'
 import { unauthorized, login } from '../../reducer/actions'
 import { formatToInteger } from '../../util'
-import { Button, Drawer, Form, Input, Select, } from 'antd';
+import { Button, Drawer, Form, Input, Select, message } from 'antd';
 import * as moment from 'moment'
 import * as request from '../../request'
 
@@ -13,7 +13,10 @@ const { Option } = Select;
 class NewCheckRecord extends React.Component {
   state = {
     submit: false,
-    course: {}
+    course: {},
+    courses: [],
+    enrollments: [],
+    checkDesks: []
   };
 
   constructor(props) {
@@ -27,13 +30,15 @@ class NewCheckRecord extends React.Component {
     this.props.form.validateFieldsAndScroll(async (err, values) => {
       if (!err) {
         this.setState({ submitting: true })
-        delete values.courseId
-        let { success } = await request.addCheckRecord(values, this.props.history, { 428: () => '该用户已使用指定报名表在此签到表签到' })
-        this.setState({ submitting: false })
-        if (success) {
-          this.setState({ showNewCheckRecordPanel: false })
-          alert('添加签到表成功')
-          this.queryCheckRecords()
+        try {
+          delete values.courseId
+          const checkRecord = await request.addCheckRecord(values, this.props.history, { 428: () => '已使用该报名表在签到表上签到！' })
+          message.info('添加签到成功')
+          this.props.onSuccess(checkRecord)
+        } catch (error) {
+
+        } finally{
+          this.setState({ submitting: false })
         }
       }
     });
@@ -126,7 +131,7 @@ class NewCheckRecord extends React.Component {
         <Form {...formItemLayout} onSubmit={this.handleSubmit}>
           <Form.Item label="课程">
             {getFieldDecorator('userId', {
-              initialValue: this.props.course.id,
+              initialValue: this.props.userInfo.id,
               rules: [
                 { required: true, message: '请输入学号' },
                 { type: 'number', min: 1000, max: 9999, message: '学号为4为数字' },

@@ -12,25 +12,12 @@ const { Option } = Select;
 
 class NewEnrollment extends React.Component {
   state = {
-    confirmDirty: false,
-    autoCompleteResult: [],
     courses: [],
-    mode: 'inline',
-    theme: 'light',
-    userInfo: {},
-    enrollments: [],
-    checkDesks: [],
-    enrollmentId: null,
-    checkDeskId: null,
-    pagination: {
-      pageSize: 10
+    enrollment: {
+      gender: 'female',
+      status: 'confirmed'
     },
-    checkRecordPagination: {
-      pageSize: 10
-    },
-    loading: false,
-    checkRecordLoading: false,
-    show: false
+    submitting: false
   };
 
   constructor(props) {
@@ -38,8 +25,14 @@ class NewEnrollment extends React.Component {
     store.dispatch(login(window.localStorage.token))
   }
 
-  componentDidMount() {
+  componentWillMount() {
     this.queryCourses()
+    this.setState({
+      enrollment: {
+        ...this.state.enrollment,
+        ...this.props.enrollment
+      }
+    })
   }
 
   handleSubmit = e => {
@@ -76,21 +69,25 @@ class NewEnrollment extends React.Component {
       }))
     })
   }
+  getFieldDecorator = this.props.form.getFieldDecorator;
+
+  formItemLayout = {
+    labelCol: {
+      xs: { span: 20 },
+      sm: { span: 5 },
+    },
+    wrapperCol: {
+      xs: { span: 24 },
+      sm: { span: 16 },
+    },
+  };
 
   render() {
-    const { getFieldDecorator } = this.props.form;
-
-    const formItemLayout = {
-      labelCol: {
-        xs: { span: 20 },
-        sm: { span: 5 },
-      },
-      wrapperCol: {
-        xs: { span: 24 },
-        sm: { span: 16 },
-      },
-    };
-
+    const initialEnrollment =  {
+      ...this.state.enrollment,
+      ...this.props.enrollment
+    }
+    console.log(initialEnrollment)
     return (
       <Drawer
         title="新建报名单"
@@ -99,20 +96,20 @@ class NewEnrollment extends React.Component {
         onClose={this.props.onClose}
         visible={this.props.show}
       >
-        <Form {...formItemLayout} onSubmit={this.handleSubmit}>
+        <Form {...this.formItemLayout} onSubmit={this.handleSubmit}>
           <Form.Item label="学号">
-            {getFieldDecorator('userId', {
-              initialValue: this.state.userInfo.id,
+            {this.getFieldDecorator('userId', {
+              initialValue: initialEnrollment.userId,
               rules: [
                 { required: true, message: '请输入学号' },
-                { type: 'number', min: 1000, max: 9999, message: '学号为4为数字' },
+                { type: 'number', min: 1000, max: 9999, message: '学号为4位数字' },
               ],
               getValueFromEvent: formatToInteger()
             })(<Input />)}
           </Form.Item>
           <Form.Item label="姓名">
-            {getFieldDecorator('name', {
-              initialValue: this.state.userInfo.nickname,
+            {this.getFieldDecorator('name', {
+              initialValue: initialEnrollment.name,
               rules: [
                 { required: true, message: '请输入报名人姓名' },
                 { max: 32, message: '用户姓名最长为32位' }
@@ -120,8 +117,8 @@ class NewEnrollment extends React.Component {
             })(<Input />)}
           </Form.Item>
           <Form.Item label="性别">
-            {getFieldDecorator('gender', {
-              initialValue: 'female',
+            {this.getFieldDecorator('gender', {
+              initialValue:  initialEnrollment.gender,
               rules: [
                 { required: true, message: '请选择性别' },
               ],
@@ -132,8 +129,8 @@ class NewEnrollment extends React.Component {
           </Form.Item>
           <Form.Item
             label="手机号" >
-            {getFieldDecorator('phone', {
-              initialValue: this.state.userInfo.phone,
+            {this.getFieldDecorator('phone', {
+              initialValue:  this.props.enrollment.phone,
               rules: [
                 { required: true, message: '请输入手机号' },
                 { pattern: /^\d{6,15}$/, message: '手机号均为数字且准许长度为6-15位' }
@@ -144,7 +141,7 @@ class NewEnrollment extends React.Component {
             })(<Input />)}
           </Form.Item>
           <Form.Item label="课程及方案">
-            {getFieldDecorator('courseAndPricePlanId', {
+            {this.getFieldDecorator('courseAndPricePlanId', {
               rules: [
                 { type: 'array', required: true, message: '请选择课程及付费方案' },
               ],
@@ -153,7 +150,7 @@ class NewEnrollment extends React.Component {
             }} options={this.state.courseOptions} />)}
           </Form.Item>
           <Form.Item label="剩余课时">
-            {getFieldDecorator('classBalance', {
+            {this.getFieldDecorator('classBalance', {
               initialValue: this.state.maxClassBalance,
               rules: [
                 { required: true, message: '请设置剩余课时' },
@@ -164,8 +161,8 @@ class NewEnrollment extends React.Component {
             })(<InputNumber min={0} />)}
           </Form.Item>
           <Form.Item label="状态">
-            {getFieldDecorator('status', {
-              initialValue: 'created',
+            {this.getFieldDecorator('status', {
+              initialValue: initialEnrollment.status,
               rules: [
                 { required: true, message: '请选择报名报状态' }
               ],
@@ -184,6 +181,7 @@ class NewEnrollment extends React.Component {
               left: 0,
               background: '#fff',
               borderRadius: '0 0 4px 4px',
+              zIndex: 100
             }}
           >
             <Button

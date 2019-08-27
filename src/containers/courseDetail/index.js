@@ -1,15 +1,12 @@
 import { Menu, Icon, Switch, Table, Input, Descriptions } from 'antd';
 import reqwest from 'reqwest';
 import React from 'react';
-import { BrowserRouter as Router, Route, Link } from "react-router-dom";
 import store from '../../reducer/index'
-import { Redirect } from 'react-router'
 import Highlighter from 'react-highlight-words';
 import { unauthorized, login } from '../../reducer/actions'
 import { PageHeader, Tag, Tabs, Button, Statistic, Row, Col } from 'antd';
-import { queryCourses } from '../../request'
 import { withRouter } from 'react-router'
-import NewCourse from '../newCourse'
+import NewCheckDesk from '../newCheckDesk'
 import * as moment from 'moment'
 import * as request from '../../request'
 import { EnrollmentStatus } from '../../common'
@@ -17,6 +14,11 @@ import { EnrollmentStatus } from '../../common'
 const { TabPane } = Tabs;
 
 class App extends React.Component {
+
+  constructor(props) {
+    super(props)
+    store.dispatch(login(window.localStorage.token))
+  }
 
   getColumnSearchProps = (dataIndex, title) => ({
     filterDropdown: ({ setSelectedKeys, selectedKeys, confirm, clearFilters }) => (
@@ -48,19 +50,6 @@ class App extends React.Component {
     filterIcon: filtered => (
       <Icon type="search" style={{ color: filtered ? '#1890ff' : undefined }} />
     ),
-    // onFilter: async (value, record) => {
-    //   console.log('!!!!!!!!!!!!')
-    //   await this.fetch({...this.state.queryCondition, nickname: value})
-    //   console.log(record)
-    //   console.log(value)
-    //   console.log(dataIndex)
-    //   return true
-    //   // return !!record[dataIndex] && record[dataIndex]
-    //   //   .toString()
-    //   //   .toLowerCase()
-    //   //   .includes(value.toLowerCase())
-    // }
-    // ,
     onFilterDropdownVisibleChange: visible => {
       if (visible) {
         setTimeout(() => this.searchInput.select());
@@ -103,7 +92,7 @@ class App extends React.Component {
     loadingCheckDesk: false,
     queryCondition: {},
     loadingCourses: false,
-    showNewUser: false
+    showNewCheckDesk: false
   };
 
   enrollmentColumns = [
@@ -214,7 +203,7 @@ class App extends React.Component {
     disable: '不可报名'
   }
 
-  componentDidMount() {
+  componentWillMount() {
     this.getCourse();
     this.queryEnrollments()
     this.queryCheckDesks()
@@ -281,7 +270,7 @@ class App extends React.Component {
         onBack={() => this.props.history.goBack()}
         title={this.state.course.name}
         extra={[
-          <Button key="1" type='primary' onClick={() => this.setState({ showNewUser: true })}>新建课程</Button>
+          <Button key="1" type='primary' onClick={() => this.setState({ showNewCheckDesk: true })}>新建签到单</Button>
           // <Button key="2" onClick={() => this.setState({ showNewCheckRecordPanel: true })}>新增签到</Button>
         ]}
         footer={
@@ -323,10 +312,10 @@ class App extends React.Component {
           <Descriptions.Item label="创建时间">{moment(this.state.course.createdAt).format('YYYY-MM-DD HH:mm')}</Descriptions.Item>
           <Descriptions.Item label="描述">{this.state.course.description}</Descriptions.Item>
         </Descriptions>
-        <NewCourse show={this.state.showNewUser} onClose={() => this.setState({ showNewUser: false })} onSubmitted={() => {
-          this.setState({ showNewUser: false })
-          this.fetch()
-        }}></NewCourse>
+        <NewCheckDesk show={this.state.showNewCheckDesk} checkDesk={{courseId: this.props.match.params.courseId}} onClose={() => this.setState({ showNewCheckDesk: false })} onSuccess={() => {
+          this.setState({ showNewCheckDesk: false })
+          this.queryCheckDesks()
+        }}></NewCheckDesk>
       </PageHeader>
     );
   }

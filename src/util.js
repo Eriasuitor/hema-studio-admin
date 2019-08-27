@@ -4,6 +4,7 @@ export function formatToInteger(min, max) {
 		if (isNaN(value)) return null
 		min !== undefined && value < min && (value = min)
 		max !== undefined && value > max && (value = max)
+		console.log(value)
 		return value
 	}
 }

@@ -4,41 +4,22 @@ import store from '../../reducer/index'
 import { Redirect } from 'react-router'
 import { unauthorized, login } from '../../reducer/actions'
 import { formatToInteger } from '../../util'
-import { Button, Drawer, Form, Input, Select, } from 'antd';
+import { Button, Drawer, Form, Input, Select, message } from 'antd';
 import * as moment from 'moment'
 import * as request from '../../request'
 
 const { Option } = Select;
 
-class NewCheckRecord extends React.Component {
+class NewCheckDesk extends React.Component {
   state = {
-    confirmDirty: false,
-    autoCompleteResult: [],
-    newEnrollment: {
-      visible: true,
-    },
     courses: [],
-    mode: 'inline',
-    theme: 'light',
-    userInfo: {},
-    enrollments: [],
-    checkDesks: [],
-    enrollmentId: null,
-    checkDeskId: null,
-    pagination: {
-      pageSize: 10
-    },
-    checkRecordPagination: {
-      pageSize: 10
-    },
-    loading: false,
-    checkRecordLoading: false
-  };
+    checkDesk: {},
+    submitting: false
+  }
 
   constructor(props) {
     super(props)
     store.dispatch(login(window.localStorage.token))
-    this.handleClose = this.handleClose.bind(this)
   }
 
   handleSubmit = e => {
@@ -46,21 +27,27 @@ class NewCheckRecord extends React.Component {
     this.props.form.validateFieldsAndScroll(async (err, values) => {
       if (!err) {
         this.setState({ submitting: true })
-        delete values.courseId
-        let { success } = await request.addCheckRecord(values, this.props.history, { 428: () => '该用户已使用指定报名表在此签到表签到' })
-        this.setState({ submitting: false })
-        if (success) {
-          this.setState({ showNewCheckRecordPanel: false })
-          alert('添加签到表成功')
-          this.queryCheckRecords()
+        try {
+          const checkDesk = await request.addCheckDesk(values, this.props.history)
+          message.info('创建成功！', 3)
+          this.props.onSuccess(checkDesk)
+        } catch (error) {
+
+        } finally {
+          this.setState({ submitting: false })
         }
       }
-    });
-  };
+    })
+  }
 
-  handleClose = e => {
-    e.preventDefault()
-    this.props.onClose()
+  componentWillMount() {
+    this.setState({
+      checkDesk: {
+        ...this.state.checkDesk,
+        ...this.props.checkDesk
+      }
+    })
+    this.queryCourses()
   }
 
   async queryCourses() {
@@ -68,115 +55,48 @@ class NewCheckRecord extends React.Component {
     this.setState({ courses: coursesResult.rows })
   }
 
-  async handleCourseChange(courseId) {
-    let [enrollmentsResult, checkDesksResult] = await Promise.all([
-      request.queryEnrollments({ userId: this.props.userInfo.id, courseId, status: 'confirmed' }),
-      request.queryCheckDesks({ courseId })
-    ])
-    let enrollmentId = null
-    let checkDeskId = null
-    enrollmentsResult.count !== 0 && (enrollmentId = enrollmentsResult.rows[0].id)
-    checkDesksResult.count !== 0 && (checkDeskId = checkDesksResult.rows[0].id)
-    this.setState({ enrollments: enrollmentsResult.rows, checkDesks: checkDesksResult.rows, enrollmentId, checkDeskId })
-  }
+  formItemLayout = {
+    labelCol: {
+      xs: { span: 20 },
+      sm: { span: 5 },
+    },
+    wrapperCol: {
+      xs: { span: 24 },
+      sm: { span: 16 },
+    },
+  };
 
-  async loadDate(selectedOptions) {
-    const targetOption = selectedOptions[selectedOptions.length - 1];
-    targetOption.loading = true;
-    switch (targetOption.type) {
-      case 'enrollment':
-        let enrollmentId
-        let checkRecords
-        break;
+  getFieldDecorator = this.props.form.getFieldDecorator;
 
-      default:
-        let courseId = targetOption.value
-        let enrollments = await request.queryEnrollments({ userId: this.props.userInfo.id, courseId, status: 'confirmed' })
-        if (enrollments.count === 0) {
-          targetOption.children = [{
-            label: '无可用报名单',
-            disabled: true
-          }]
-        }
-        else {
-          targetOption.children = enrollments.rows.map(enrollment => ({
-            label: `${enrollment.name}-${enrollment.phone}-${enrollment.classBalance}`,
-            value: enrollment.id,
-            type: 'enrollment',
-            isLeaf: false
-          }))
-        }
-        break;
-    }
-
-    targetOption.loading = false
-    this.setState({
-      courseOptions: [...this.state.courseOptions],
-    });
-  }
-
-  componentDidMount() {
-    this.setState({ show: this.props.show })
-    this.queryCourses()
-  }
 
   render() {
-    const { getFieldDecorator } = this.props.form;
-
-    const formItemLayout = {
-      labelCol: {
-        xs: { span: 20 },
-        sm: { span: 5 },
-      },
-      wrapperCol: {
-        xs: { span: 24 },
-        sm: { span: 16 },
-      },
-    };
-
     return (
       <Drawer
-        title="新增签到"
+        title="新建签到表"
         width={520}
         closable={false}
         onClose={this.props.onClose}
         visible={this.props.show}
       >
-        {/* <WrappedNewEnrollment></WrappedNewEnrollment> */}
-        <Form {...formItemLayout} onSubmit={this.handleSubmit}>
+        <Form {...this.formItemLayout} onSubmit={this.handleSubmit}>
           <Form.Item label="课程">
-            {getFieldDecorator('courseId', {
+            {this.getFieldDecorator('courseId', {
+              initialValue: this.state.checkDesk.courseId,
               rules: [
                 { required: true, message: '请选择课程' },
               ]
-            })(<Select
-              onChange={this.handleCourseChange.bind(this)}
-            >{
+            })(<Select>{
                 this.state.courses.map(course => (
                   <Option key={course.id} value={course.id}>{course.id} / {course.name}</Option>
                 ))}</Select>)}
           </Form.Item>
-          <Form.Item label="报名单">
-            {getFieldDecorator('enrollmentId', {
-              initialValue: this.state.enrollmentId,
+          <Form.Item label="地址">
+            {this.getFieldDecorator('address', {
+              initialValue: this.state.checkDesk.enrollmentId,
               rules: [
-                { required: true, message: '请选择报名单' },
+                {max: 100, message: '地址最长为100字'}
               ]
-            })(<Select>{
-              this.state.enrollments.map(enrollment => (
-                <Option key={enrollment.id} value={enrollment.id}>{enrollment.name}(余{enrollment.classBalance}课时)</Option>
-              ))}</Select>)}
-          </Form.Item>
-          <Form.Item label="签到表">
-            {getFieldDecorator('checkDeskId', {
-              initialValue: this.state.checkDeskId,
-              rules: [
-                { required: true, message: '请选择签到表' },
-              ]
-            })(<Select>{
-              this.state.checkDesks.map(checkDesk => (
-                <Option key={checkDesk.id} value={checkDesk.id}>{moment(checkDesk.createdAt).format('YYYY-MM-DD HH:mm')} / {checkDesk.address}</Option>
-              ))}</Select>)}
+            })(<Input placeholder='选填' />)}
           </Form.Item>
           <div
             style={{
@@ -195,7 +115,7 @@ class NewCheckRecord extends React.Component {
               style={{
                 marginRight: 8,
               }}
-              onClick={() => { }}
+              onClick={this.props.onClose}
             >
               取消
             </Button>
@@ -203,14 +123,13 @@ class NewCheckRecord extends React.Component {
               重置
             </Button>
             <Button type="primary" htmlType="submit" loading={this.state.submitting}>
-              确认
+              创建
             </Button>
           </div>
-          {/* </Form.Item> */}
         </Form>
       </Drawer>
     );
   }
 }
 
-export default Form.create({ name: 'register' })(NewCheckRecord)
+export default Form.create({ name: 'register' })(NewCheckDesk)
