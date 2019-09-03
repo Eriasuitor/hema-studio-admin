@@ -12,68 +12,6 @@ import { withRouter } from 'react-router'
 import NewUser from '../newUser'
 import * as moment from 'moment'
 
-class Member extends React.Component {
-  state = {
-    mode: 'inline',
-    theme: 'light',
-    searchText: ''
-  };
-
-  constructor(props) {
-    super(props)
-    console.log('member: ' + window.localStorage.token)
-    store.dispatch(login(window.localStorage.token))
-  }
-
-  changeMode = value => {
-    this.setState({
-      mode: value ? 'vertical' : 'inline',
-    });
-  };
-
-  changeTheme = value => {
-    this.setState({
-      theme: value ? 'dark' : 'light',
-    });
-  };
-
-  render() {
-    // if(!store.getState().token) {
-    //   store.dispatch(unauthorized('./member'))
-    //   return (<Redirect to='/login' />)
-    // }
-    const { TabPane } = Tabs;
-    return (
-      <PageHeader
-        onBack={() => window.history.back()}
-        title="Title"
-        subTitle="This is a subtitle"
-        tags={<Tag color="red">Warning</Tag>}
-        extra={[
-          <Button key="3">Operation</Button>,
-          <Button key="2">Operation</Button>,
-          <Button key="1" type="primary">
-            Primary
-      </Button>,
-        ]}
-        footer={
-          <Tabs defaultActiveKey="1">
-            <TabPane tab="Details" key="1" />
-            <TabPane tab="Rule" key="2" />
-          </Tabs>
-        }
-      >
-        <div className="wrap">
-          <div className="content padding">asdasd</div>
-          <div className="extraContent">asdasda</div>
-        </div>
-      </PageHeader>
-    );
-  }
-}
-
-
-
 class App extends React.Component {
 
   getColumnSearchProps = (dataIndex, title) => ({
@@ -126,12 +64,12 @@ class App extends React.Component {
     },
     render: (text = '') => {
       text || (text = '')
-      return <Highlighter
+      return <span className="ellipsis w1" title=""><Highlighter
         highlightStyle={{ backgroundColor: '#ffc069', padding: 0 }}
         searchWords={[this.state.searchText]}
         autoEscape
         textToHighlight={text.toString()}
-      />
+      /></span>
     },
   });
 
@@ -150,19 +88,17 @@ class App extends React.Component {
   };
 
   columns = [
-    {
+        {
       title: '学号',
       dataIndex: 'id',
       sorter: true,
       render: id => <a onClick={() => this.props.history.push(`/member/${id}`)}>{id}</a>,
-      width: '5%'
     },
     {
       title: '姓名',
       sorter: true,
       key: 'nickname',
       dataIndex: 'nickname',
-      width: '15%',
       ...this.getColumnSearchProps('nickname', '昵称'),
     },
     {
@@ -170,23 +106,20 @@ class App extends React.Component {
       sorter: true,
       dataIndex: 'gender',
       render: gender => gender ? gender === 'male' ? '男' : '女' : '未知',
-      width: '5%'
     },
     {
       title: '密码',
       dataIndex: 'password',
-      width: '10%'
+      render: password => <span className="ellipsis w1" title="">{password}</span>
     },
     {
       title: '手机号',
       sorter: true,
       dataIndex: 'phone',
-      width: '7%'
     },
     {
       title: '地区',
       sorter: true,
-      width: '10%',
       render: user => user.country ? `${user.country} ${user.province} ${user.city}` : "",
     },
     {
@@ -194,13 +127,11 @@ class App extends React.Component {
       sorter: true,
       dataIndex: 'createdAt',
       render: date => moment(date).format('YYYY-MM-DD HH:mm'),
-      width: '12%',
     },
     {
       title: 'unionId',
       sorter: true,
       dataIndex: 'unionId',
-      width: '15%'
     },
   ];
 
@@ -277,8 +208,9 @@ class App extends React.Component {
           pagination={this.state.pagination}
           loading={this.state.loading}
           onChange={this.handleTableChange}
+          onRowClick={(userInfo) => this.props.history.push(`/member/${userInfo.id}`)}
+          scroll={{x: 888 }}
           size="small"
-          style={{ backgroundColor: 'white', padding: '24px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}
         />
         <NewUser show={this.state.showNewUser} onClose={() => this.setState({ showNewUser: false })} onSubmitted={() => {
           this.setState({ showNewUser: false })

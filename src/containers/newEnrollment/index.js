@@ -130,7 +130,7 @@ class NewEnrollment extends React.Component {
           <Form.Item
             label="手机号" >
             {this.getFieldDecorator('phone', {
-              initialValue:  this.props.enrollment.phone,
+              initialValue:  initialEnrollment.phone,
               rules: [
                 { required: true, message: '请输入手机号' },
                 { pattern: /^\d{6,15}$/, message: '手机号均为数字且准许长度为6-15位' }

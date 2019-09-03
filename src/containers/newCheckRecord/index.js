@@ -16,7 +16,8 @@ class NewCheckRecord extends React.Component {
     course: {},
     courses: [],
     enrollments: [],
-    checkDesks: []
+    checkDesks: [],
+    checkRecord: {}
   };
 
   constructor(props) {
@@ -50,14 +51,18 @@ class NewCheckRecord extends React.Component {
   }
 
   async queryCourses() {
-    let coursesResult = await request.queryCourses({ pageSize: 10000 }, this.props.history)
-    this.setState({ courses: coursesResult.rows })
+    try {
+      let coursesResult = await request.queryCourses({ pageSize: 10000 })
+      this.setState({ courses: coursesResult.rows })
+    } catch (error) {
+      
+    }
   }
 
   async handleCourseChange(courseId) {
     let [enrollmentsResult, checkDesksResult] = await Promise.all([
-      request.queryEnrollments({ userId: this.props.userInfo.id, courseId, status: 'confirmed' }),
-      request.queryCheckDesks({ courseId })
+      request.queryEnrollments({ userId: this.props.userInfo.id, courseId, status: 'confirmed' }, this.props.history),
+      request.queryCheckDesks({ courseId }, this.props.history) 
     ])
     let enrollmentId = null
     let checkDeskId = null
@@ -102,7 +107,6 @@ class NewCheckRecord extends React.Component {
   }
 
   componentDidMount() {
-    this.setState({ show: this.props.show })
     this.queryCourses()
   }
 
@@ -129,9 +133,9 @@ class NewCheckRecord extends React.Component {
         visible={this.props.show}
       >
         <Form {...formItemLayout} onSubmit={this.handleSubmit}>
-          <Form.Item label="课程">
+          <Form.Item label="学号">
             {getFieldDecorator('userId', {
-              initialValue: this.props.userInfo.id,
+              initialValue: this.state.checkRecord.userId,
               rules: [
                 { required: true, message: '请输入学号' },
                 { type: 'number', min: 1000, max: 9999, message: '学号为4为数字' },
@@ -153,7 +157,7 @@ class NewCheckRecord extends React.Component {
           </Form.Item>
           <Form.Item label="报名单">
             {getFieldDecorator('enrollmentId', {
-              initialValue: this.state.enrollmentId,
+              initialValue: this.state.checkRecord.enrollmentId,
               rules: [
                 { required: true, message: '请选择报名单' },
               ]
@@ -164,7 +168,7 @@ class NewCheckRecord extends React.Component {
           </Form.Item>
           <Form.Item label="签到表">
             {getFieldDecorator('checkDeskId', {
-              initialValue: this.state.checkDeskId,
+              initialValue: this.state.checkRecord.checkDeskId,
               rules: [
                 { required: true, message: '请选择签到表' },
               ]

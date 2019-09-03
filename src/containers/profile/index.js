@@ -7,7 +7,7 @@ import NewCheckRecord from '../newCheckRecord'
 import NewEnrollment from '../newEnrollment'
 import { EnrollmentStatus } from '../../common'
 
-import { PageHeader, Tabs, Button, Table, Icon, Descriptions, Form, Select, AutoComplete, } from 'antd';
+import { PageHeader, Tabs, Button, Table, Icon, Descriptions, Form, Select, message, } from 'antd';
 import { withRouter } from 'react-router'
 import * as moment from 'moment'
 import * as request from '../../request'
@@ -38,73 +38,61 @@ class Profile extends React.Component {
       title: '单号',
       dataIndex: 'id',
       sorter: true,
-      width: '5%'
     },
     {
       title: '姓名',
       sorter: true,
       dataIndex: 'name',
-      width: '7%',
     },
     {
       title: '性别',
       sorter: true,
       dataIndex: 'gender',
-      width: '4%'
     },
     {
       title: '手机号',
       sorter: true,
       dataIndex: 'phone',
-      width: '7%'
     },
     {
       title: '课程',
-      // sorter: true,
       dataIndex: 'course.name',
-      width: '10%'
+      render: name => <span className='ellipsis w2'>{name}</span>
     },
     {
       title: '原价',
       // sorter: true,
       dataIndex: 'pricePlan.price',
-      width: '5%'
     },
     {
       title: '价格',
       // sorter: true,
       dataIndex: 'pricePlan.discountedPrice',
-      width: '5%'
     },
     {
       title: '剩余课时',
       sorter: true,
       dataIndex: 'classBalance',
-      width: '7%'
     },
     {
       title: '总课时',
       dataIndex: 'pricePlan.class',
-      width: '5%'
     },
     {
       title: '创建时间',
       sorter: true,
       dataIndex: 'createdAt',
       render: date => moment(date).format('YYYY-MM-DD HH:mm'),
-      width: '10%',
     },
     {
       title: '状态',
       sorter: true,
       dataIndex: 'status',
       render: status => EnrollmentStatus[status],
-      width: '5%'
     },
     {
       title: '操作',
       render: enrollment => (<span><Icon type="stop" theme="twoTone" twoToneColor="red" title='标记为过期' /> {enrollment.status === 'paid' && <Icon theme="twoTone" type="check-circle" onClick={this.confirmEnrollment.bind(this, enrollment.id)} title='确认付款' />} </span>),
-      width: '7%'
     }
   ];
 
@@ -113,32 +101,26 @@ class Profile extends React.Component {
       title: '编号',
       dataIndex: 'id',
       sorter: true,
-      width: '5%'
     },
     {
       title: '课程',
-      // sorter: true,
       dataIndex: 'course.name',
-      width: '10%'
+      render: name => <span className='ellipsis w2'>{name}</span>
     },
     {
       title: '课程次序',
-      // sorter: true,
       dataIndex: 'checkDesk.order',
-      width: '5%'
     },
     {
       title: '地点',
       // sorter: true,
       dataIndex: 'checkDesk.address',
-      width: '10%'
     },
     {
       title: '时间',
       sorter: true,
       dataIndex: 'createdAt',
       render: date => moment(date).format('YYYY-MM-DD HH:mm'),
-      width: '10%'
     },
   ];
 
@@ -152,15 +134,17 @@ class Profile extends React.Component {
     this.props.form.validateFieldsAndScroll(async (err, values) => {
       if (!err) {
         this.setState({ submitting: true })
-        let enrollment = { ...values }
-        enrollment.pricePlanId = enrollment.courseAndPricePlanId[1]
-        delete enrollment.courseAndPricePlanId
-        let { success } = await request.addEnrollment(enrollment)
-        this.setState({ submitting: false })
-        if (success !== false) {
-          this.setState({ showNewEnrollment: false })
-          alert('新建报名报成功')
+        try {
+          let enrollment = { ...values }
+          enrollment.pricePlanId = enrollment.courseAndPricePlanId[1]
+          delete enrollment.courseAndPricePlanId
+          await request.addEnrollment(enrollment)
           this.queryEnrollments()
+          message('新建报名报成功')
+        } catch (error) {
+
+        } finally {
+          this.setState({ submitting: false, showNewEnrollment: false })
         }
       }
     });
@@ -198,7 +182,7 @@ class Profile extends React.Component {
     this.setState({ autoCompleteResult });
   };
 
-  
+
 
   componentDidMount() {
     this.getProfile()
@@ -211,38 +195,50 @@ class Profile extends React.Component {
   }
 
   async getProfile() {
-    let userInfo = await request.getUserInfo(this.props.match.params.userId, this.props.history)
-    this.setState({
-      userInfo
-    })
+    try {
+      const userInfo = await request.getUserInfo(this.props.match.params.userId, this.props.history)
+      this.setState({
+        userInfo
+      })
+    } catch (error) {
+    }
+
   }
 
   async queryCheckRecords(query) {
-    this.setState({
-      checkRecordLoading: true
-    })
-    let { count, rows: checkRecords } = await request.queryCheckRecords({ userId: this.props.match.params.userId, ...query }, this.props.history)
-    const checkRecordPagination = { ...this.state.checkRecordPagination };
-    checkRecordPagination.total = count;
-    this.setState({
-      checkRecords,
-      checkRecordPagination,
-      checkRecordLoading: false
-    })
+    try {
+      this.setState({
+        checkRecordLoading: true
+      })
+      let { count, rows: checkRecords } = await request.queryCheckRecords({ userId: this.props.match.params.userId, ...query }, this.props.history)
+      const checkRecordPagination = { ...this.state.checkRecordPagination };
+      checkRecordPagination.total = count;
+      this.setState({
+        checkRecords,
+        checkRecordPagination,
+        checkRecordLoading: false
+      })
+    } catch (error) {
+
+    }
   }
 
   async queryEnrollments(query) {
-    this.setState({
-      loading: true
-    })
-    let { count, rows: enrollments } = await request.queryEnrollments({ userId: this.props.match.params.userId, ...query }, this.props.history)
-    const pagination = { ...this.state.pagination };
-    pagination.total = count;
-    this.setState({
-      enrollments,
-      pagination,
-      loading: false
-    })
+    try {
+      this.setState({
+        loading: true
+      })
+      let { count, rows: enrollments } = await request.queryEnrollments({ userId: this.props.match.params.userId, ...query }, this.props.history)
+      const pagination = { ...this.state.pagination };
+      pagination.total = count;
+      this.setState({
+        enrollments,
+        pagination,
+        loading: false
+      })
+    } catch (error) {
+
+    }
   }
 
   handleCheckRecordTableChange = (pagination, filters, sorter) => {
@@ -260,12 +256,14 @@ class Profile extends React.Component {
   }
 
   async addCheckRecord(checkRecord) {
-    delete checkRecord.courseId
-    let { success } = await request.addCheckRecord(checkRecord, this.props.history, { 428: () => '该用户已使用指定报名表在此签到表签到' })
-    if (success) {
+    try {
+      delete checkRecord.courseId
+      await request.addCheckRecord(checkRecord, this.props.history, { 428: () => '该用户已使用指定报名表在此签到表签到' })
       this.setState({ showNewCheckRecord: false })
-      alert('添加签到表成功')
+      message('添加签到表成功')
       this.queryCheckRecords()
+    } catch (error) {
+
     }
   }
 
@@ -325,8 +323,8 @@ class Profile extends React.Component {
         title="个人信息"
         subTitle={this.props.match.params.userId}
         extra={[
-          <Button key="1" type='primary' onClick={() => this.setState({showNewEnrollment: true})}>新增报名单</Button>,
-          <Button key="2" onClick={() => this.setState({showNewCheckRecord: true})}>新增签到</Button>
+          <Button key="1" type='primary' onClick={() => this.setState({ showNewEnrollment: true })}>新增报名单</Button>,
+          <Button key="2" onClick={() => this.setState({ showNewCheckRecord: true })}>新增签到</Button>
         ]}
         footer={
           <Tabs defaultActiveKey="1">
@@ -339,6 +337,7 @@ class Profile extends React.Component {
                 loading={this.state.loading}
                 onChange={this.handleTableChange}
                 size="small"
+                scroll={{ x: 888 }}
                 style={{ backgroundColor: 'white', padding: '24px' }}
               />
             </TabPane>
@@ -351,6 +350,7 @@ class Profile extends React.Component {
                 loading={this.state.checkRecordLoading}
                 onChange={this.handleCheckRecordTableChange}
                 size="small"
+                scroll={{ x: 888 }}
                 style={{ backgroundColor: 'white', padding: '24px' }}
               />
             </TabPane>
@@ -391,8 +391,7 @@ class Profile extends React.Component {
             this.setState({ showNewEnrollment: false })
             this.queryEnrollments()
           }}
-        >
-        </NewEnrollment>
+       />
       </PageHeader>
     );
   }

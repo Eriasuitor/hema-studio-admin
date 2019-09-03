@@ -6,7 +6,7 @@ import store from '../../reducer/index'
 import { Redirect } from 'react-router'
 import Highlighter from 'react-highlight-words';
 import { unauthorized, login } from '../../reducer/actions'
-import { PageHeader, Tag, Tabs, Button, Modal, Row, Col } from 'antd';
+import { PageHeader, Tag, Tabs, Button, Modal, Row, Col, Tooltip } from 'antd';
 import * as request from '../../request'
 import { withRouter } from 'react-router'
 import NewCourse from '../newCourse'
@@ -59,12 +59,16 @@ class App extends React.Component {
     },
     render: (text = '') => {
       text || (text = '')
-      return <Highlighter
+      return <span className="ellipsis w1" title="">
+       <Highlighter
+        className='ellipsis w1'
         highlightStyle={{ backgroundColor: '#ffc069', padding: 0 }}
         searchWords={[this.state.searchText]}
         autoEscape
+        overlayStyle={{backgroundColor: 'white'}}
         textToHighlight={text.toString()}
       />
+      </span>
     },
   });
 
@@ -72,7 +76,7 @@ class App extends React.Component {
   state = {
     courses: [],
     pagination: {
-      pageSize: 15,
+      pageSize: 100,
       showQuickJumper: true,
       showTotal: (total) => `共${total}条目`,
       total: 0
@@ -80,7 +84,7 @@ class App extends React.Component {
     editingCourse: null,
     queryCondition: {},
     loadingCourses: false,
-    showNewUser: true,
+    showNewUser: false,
   };
 
   columns = [
@@ -89,47 +93,48 @@ class App extends React.Component {
       dataIndex: 'id',
       sorter: true,
       render: id => <a onClick={() => this.props.history.push(`/courses/${id}`)}>{id}</a>,
-      width: '5%'
     },
     {
       title: '课程名称',
       sorter: true,
       dataIndex: 'name',
       key: 'name',
-      width: '25%',
+      render: name => <Tooltip placement="topLeft" title={name}>
+      <span className="ellipsis w1" title="">
+        {name}
+      </span>
+    </Tooltip>,
       ...this.getColumnSearchProps('name', '课程'),
     },
     {
       title: '描述',
       key: 'description',
       dataIndex: 'description',
-      width: '35%',
+      render: description => <span className="ellipsis w2">
+        {description}
+      </span>,
     },
     // {
     //   title: '支持试听',
     //   sorter: true,
     //   dataIndex: 'supportAudition',
     //   render: supportAudition => supportAudition? '是' : '否' ,
-    //   width: '5%'
     // },
     {
       title: '状态',
       sorter: true,
       dataIndex: 'status',
       render: status => this.statusMapping[status],
-      width: '10%'
     },
     {
       title: '创建时间',
       sorter: true,
       dataIndex: 'createdAt',
       render: date => moment(date).format('YYYY-MM-DD HH:mm'),
-      width: '15%',
     },
     {
       title: '操作',
       key: 'operation',
-      width: '10%',
       render: course => <span><a style={{ marginRight: '5px' }} onClick={this.showEdit.bind(this, course)}><Icon type="edit" /></a><a onClick={this.deleteCourse.bind(this, course)}><Icon type="delete" /></a></span>,
     },
   ];
@@ -143,13 +148,13 @@ class App extends React.Component {
   lastCourseId = 0
 
   componentDidMount() {
+    console.log(this.state.pagination)
     this.queryCourses();
   }
 
   handleTableChange = (pagination, filters, sorter) => {
     const pager = { ...this.state.pagination };
     pager.current = pagination.current;
-    this.setState({ pagination: pager });
     let queryCondition = {
       pageSize: pager.pageSize,
       page: pager.current,
@@ -157,7 +162,6 @@ class App extends React.Component {
     }
     sorter.field && (queryCondition.orderBy = sorter.field)
     sorter.order && (queryCondition.isDesc = sorter.order === 'descend' ? true : false)
-    this.setState({ queryCondition })
     this.queryCourses(queryCondition, this.props.history);
   };
 
@@ -187,9 +191,9 @@ class App extends React.Component {
     });
   }
 
-  queryCourses = async () => {
+  queryCourses = async (queryCondition) => {
     this.setState({ loadingCourses: true });
-    let courses = await request.queryCourses(this.state.queryCondition, this.props.history)
+    let courses = await request.queryCourses(queryCondition || this.state.queryCondition, this.props.history)
     const pagination = { ...this.state.pagination };
     pagination.total = courses.count;
     this.setState({
@@ -226,8 +230,11 @@ class App extends React.Component {
           pagination={this.state.pagination}
           loading={this.state.loadingCourses}
           onChange={this.handleTableChange}
+          onRowClick={(course) => this.props.history.push(`/courses/${course.id}`)}
           size="small"
-          style={{ backgroundColor: 'white', padding: '24px' }}
+          // , y: 'calc(100vh - 400px)'
+          scroll={{x: 888}}
+          style={{ backgroundColor: 'white', marginTop: '24px' }}
         />
         <NewCourse key={this.state.newCourseKey} {...this.props} course={this.state.editingCourse} show={this.state.showNewUser} onClose={() => this.setState({ showNewUser: false })} onSuccess={() => {
           this.setState({ showNewUser: false })

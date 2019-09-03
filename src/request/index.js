@@ -15,7 +15,7 @@ const diffStatusAction = {
 		const storage = window.localStorage;
 		storage.token = null;
 		store.dispatch(logOut())
-		history.push('/login')
+		history && history.push('/login')
 		return '请登录'
 	},
 	400: () => {
@@ -29,7 +29,7 @@ const diffStatusAction = {
 export function responseStatusHandle(res, history, statusHandler = {}) {
 	if (res.status < 200 || res.status >= 300) {
 		const handler = statusHandler[res.status] || diffStatusAction[res.status]
-		res.handleMessage = handler ? handler() : ""
+		res.handleMessage = handler ? handler(history) : ""
 		const error = new Error(res.message)
 		error.res = res
 		throw error
@@ -109,6 +109,11 @@ export function addEnrollment(data, history) {
 	let { userId } = data
 	delete data.userId
 	return post(`/users/${userId}/enrollments`, data, history)
+}
+
+export async function getEnrollment(enrollmentId, history) {
+	const {rows} = await get(`/enrollments?id=${enrollmentId}`, undefined, history)
+	return rows[0]
 }
 
 /**

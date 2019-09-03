@@ -203,7 +203,7 @@ class App extends React.Component {
     disable: '不可报名'
   }
 
-  componentWillMount() {
+  componentDidMount() {
     this.getCourse();
     this.queryEnrollments()
     this.queryCheckDesks()
@@ -295,6 +295,7 @@ class App extends React.Component {
                 pagination={this.state.checkDeskPagination}
                 loading={this.state.loadingCheckDesk}
                 onChange={this.handleCheckRecordTableChange}
+                scroll={{x: 888}}
                 size="small"
                 style={{ backgroundColor: 'white', padding: '24px' }}
               />
