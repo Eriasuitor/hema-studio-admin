@@ -60,23 +60,14 @@ class Profile extends React.Component {
       render: name => <span className='ellipsis w2'>{name}</span>
     },
     {
-      title: '原价',
-      // sorter: true,
-      dataIndex: 'pricePlan.price',
-    },
-    {
       title: '价格',
       // sorter: true,
       dataIndex: 'pricePlan.discountedPrice',
     },
     {
       title: '剩余课时',
-      sorter: true,
-      dataIndex: 'classBalance',
-    },
-    {
-      title: '总课时',
-      dataIndex: 'pricePlan.class',
+      key: 'classBalance',
+      render: value => `${value.classBalance}/${value.pricePlan.class}`
     },
     {
       title: '创建时间',

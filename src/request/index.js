@@ -42,7 +42,7 @@ export function responseStatusHandle(res, history, statusHandler = {}) {
 
 export function handleError(err) {
 	let { res } = err
-	message.warning((res && res.handleMessage) || ((res && res.status && '出现未能处理的错误，请告知我们，我们将尽快修复') || '服务器失联，请稍后再试，如果此问题一直未能得到修复，请联系我们。'))
+	message.warning((res && res.handleMessage) || ((res && res.status && '出现未被预见的错误，请告知我们，我们将尽快修复') || '服务器失联，请稍后再试，如果此问题一直未能得到修复，请联系我们。'))
 	throw err
 }
 

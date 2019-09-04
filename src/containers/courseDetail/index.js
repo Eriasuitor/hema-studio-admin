@@ -31,7 +31,6 @@ class App extends React.Component {
           value={selectedKeys[0]}
           onChange={e => setSelectedKeys(e.target.value ? [e.target.value] : [])}
           onPressEnter={() => this.handleSearch(selectedKeys, confirm)}
-          style={{ width: 188, marginBottom: 8, display: 'block' }}
         />
         <Button
           type="primary"
@@ -101,57 +100,48 @@ class App extends React.Component {
       dataIndex: 'id',
       sorter: true,
       render: id => <a onClick={() => this.props.history.push(`/courses/${id}`)}>{id}</a>,
-      width: '5%'
     },
     {
       title: '学号',
       sorter: true,
       key: 'userId',
       dataIndex: 'userId',
-      width: '5%',
       // ...this.getColumnSearchProps('name', '课程'),
     },
     {
       title: '剩余课时',
       key: 'classBalance',
       dataIndex: 'classBalance',
-      width: '5%'
     },
     {
       title: '姓名',
       sorter: true,
       dataIndex: 'name',
       render: supportAudition => supportAudition ? '是' : '否',
-      width: '10%'
     },
     {
       title: '性别',
       sorter: true,
       dataIndex: 'gender',
       render: gender => gender? (gender === 'male'? '男': '女') : '未知',
-      width: '5%'
     },
     {
       title: '手机号码',
       dataIndex: 'phone',
-      width: '5%',
     },
     {
       title: '状态',
       dataIndex: 'status',
-      width: '5%',
       render: status => EnrollmentStatus[status]
     },
     {
       title: '创建时间',
       dataIndex: 'createdAt',
-      width: '10%',
       render: createdAt => moment(createdAt).format('YYYY-MM-DD HH-mm')
     },
     {
       title: '价格',
       dataIndex: 'pricePlan',
-      width: '7%',
       render: pricePlan => `￥${pricePlan.discountedPrice} / ${pricePlan.class}课时`
     }
   ];
@@ -162,14 +152,12 @@ class App extends React.Component {
       dataIndex: 'id',
       sorter: true,
       render: id => <a onClick={() => this.props.history.push(`/courses/${id}`)}>{id}</a>,
-      width: '5%'
     },
     {
       title: '序号',
       sorter: true,
       key: 'order',
       dataIndex: 'order',
-      width: '5%',
       // ...this.getColumnSearchProps('name', '课程'),
     },
     {
@@ -177,19 +165,16 @@ class App extends React.Component {
       sorter: true,
       key: 'userId',
       dataIndex: 'userId',
-      width: '5%',
       render: id => <a onClick={() => this.props.history.push(`/member/${id}`)}>{id}</a>,
     },
     {
       title: '地点',
       key: 'address',
       dataIndex: 'address',
-      width: '20%'
     },
     {
       title: '创建时间',
       dataIndex: 'createdAt',
-      width: '10%',
       render: createdAt => moment(createdAt).format('YYYY-MM-DD HH-mm')
     }
   ];
