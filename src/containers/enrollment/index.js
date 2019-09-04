@@ -175,7 +175,7 @@ class App extends React.Component {
           pagination={this.state.pagination}
           loading={this.state.loading}
           onChange={this.handleTableChange}
-          onRowClick={(enrollment) => this.props.history.push(`/enrollments/${enrollment.id}`)}
+//           onRowClick={(enrollment) => this.props.history.push(`/enrollments/${enrollment.id}`)}
           size="small"
           scroll={{x: 888}}
           style={{marginTop: '24px'}}

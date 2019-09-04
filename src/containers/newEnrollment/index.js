@@ -39,8 +39,8 @@ class NewEnrollment extends React.Component {
     e.preventDefault();
     this.props.form.validateFieldsAndScroll(async (err, values) => {
       if (!err) {
+        this.setState({ submitting: true })
         try {
-          this.setState({ submitting: true })
           values.pricePlanId = values.courseAndPricePlanId[1]
           delete values.courseAndPricePlanId
           const enrollment = await request.addEnrollment(values)
@@ -56,18 +56,22 @@ class NewEnrollment extends React.Component {
   }
 
   async queryCourses() {
-    let courses = await request.queryCourses(undefined, this.props.history)
-    this.setState({
-      courseOptions: courses.rows.map(course => ({
-        label: course.name,
-        value: course.id,
-        children: course.pricePlans.map(pricePlan => ({
-          label: `${pricePlan.class}课时(¥${pricePlan.price})`,
-          class: pricePlan.class,
-          value: pricePlan.id
+    try {
+      let courses = await request.queryCourses(undefined, this.props.history)
+      this.setState({
+        courseOptions: courses.rows.map(course => ({
+          label: course.name,
+          value: course.id,
+          children: course.pricePlans.map(pricePlan => ({
+            label: `${pricePlan.class}课时(¥${pricePlan.price})`,
+            class: pricePlan.class,
+            value: pricePlan.id
+          }))
         }))
-      }))
-    })
+      })
+    } catch (error) {
+
+    }
   }
   getFieldDecorator = this.props.form.getFieldDecorator;
 
@@ -83,7 +87,7 @@ class NewEnrollment extends React.Component {
   };
 
   render() {
-    const initialEnrollment =  {
+    const initialEnrollment = {
       ...this.state.enrollment,
       ...this.props.enrollment
     }
@@ -118,7 +122,7 @@ class NewEnrollment extends React.Component {
           </Form.Item>
           <Form.Item label="性别">
             {this.getFieldDecorator('gender', {
-              initialValue:  initialEnrollment.gender,
+              initialValue: initialEnrollment.gender,
               rules: [
                 { required: true, message: '请选择性别' },
               ],
@@ -130,7 +134,7 @@ class NewEnrollment extends React.Component {
           <Form.Item
             label="手机号" >
             {this.getFieldDecorator('phone', {
-              initialValue:  initialEnrollment.phone,
+              initialValue: initialEnrollment.phone,
               rules: [
                 { required: true, message: '请输入手机号' },
                 { pattern: /^\d{6,15}$/, message: '手机号均为数字且准许长度为6-15位' }

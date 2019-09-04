@@ -6,7 +6,7 @@ import store from '../../reducer/index'
 import { Redirect } from 'react-router'
 import Highlighter from 'react-highlight-words';
 import { unauthorized, login } from '../../reducer/actions'
-import { PageHeader, Tag, Tabs, Button, Statistic, Row, Col } from 'antd';
+import { PageHeader, Tag, Tabs, Button, Statistic, Row, Col, Avatar } from 'antd';
 import { getMembers } from '../../request'
 import { withRouter } from 'react-router'
 import NewUser from '../newUser'
@@ -88,7 +88,12 @@ class App extends React.Component {
   };
 
   columns = [
-        {
+    {
+      title: '',
+      dataIndex: 'avatar',
+      render: value => <Avatar src={value} style={{ backgroundColor: '#87d068' }} icon="user" />,
+    },
+     {
       title: '学号',
       dataIndex: 'id',
       sorter: true,
@@ -159,10 +164,8 @@ class App extends React.Component {
     // this.setState({ loading: true });
     try {
       let member = await getMembers(query, this.props.history)
-
       const pagination = { ...this.state.pagination };
       pagination.total = member.count;
-      //   console.log(data)
       this.setState({
         loading: false,
         data: member.rows,
@@ -208,7 +211,7 @@ class App extends React.Component {
           pagination={this.state.pagination}
           loading={this.state.loading}
           onChange={this.handleTableChange}
-          onRowClick={(userInfo) => this.props.history.push(`/member/${userInfo.id}`)}
+//           onRowClick={(userInfo) => this.props.history.push(`/member/${userInfo.id}`)}
           scroll={{x: 888 }}
           size="small"
         />

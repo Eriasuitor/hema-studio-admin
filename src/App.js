@@ -18,6 +18,10 @@ import store from './reducer/index'
 import { login } from './reducer/actions'
 import './App.css'
 import DashboardIcon from './Icons/Dashboard';
+import BookIcon from './Icons/Book';
+import EnrollmentIcon from './Icons/Enrollment';
+import CheckInIcon from './Icons/CheckIn';
+import UserIcon from './Icons/Users';
 
 const { Header, Footer, Sider, Content } = Layout;
 
@@ -50,10 +54,10 @@ class App extends React.Component {
 
   routerPath = [
     { url: '/index', title: '总览', key: "1", icon: DashboardIcon },
-    { url: '/member', title: '学员', key: "2" },
-    { url: '/courses', title: '课程', key: "3" },
-    { url: '/enrollments', title: '报名', key: "4" },
-    { url: '/check-desks', title: '签到', key: "5" },
+    { url: '/member', title: '学员', key: "2", icon: UserIcon },
+    { url: '/courses', title: '课程', key: "3", icon: BookIcon },
+    { url: '/enrollments', title: '报名', key: "4", icon: EnrollmentIcon },
+    { url: '/check-desks', title: '签到', key: "5", icon: CheckInIcon },
   ]
 
   calculatePathKey(url) {
@@ -82,7 +86,6 @@ class App extends React.Component {
               <Menu.Item key={routerPath.key} onClick={() => history.push(routerPath.url)}>
                 <Icon component={routerPath.icon} />
                 {/* {routerPath.icon} */}
-                {/* <DashboardIcon width='20px'  height='20px' /> */}
                 {routerPath.title}
               </Menu.Item>
             )

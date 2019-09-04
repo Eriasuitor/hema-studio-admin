@@ -29,7 +29,7 @@ class NewCheckDesk extends React.Component {
         this.setState({ submitting: true })
         try {
           const checkDesk = await request.addCheckDesk(values, this.props.history)
-          message.info('创建成功！', 3)
+          message.success('创建成功！', 3)
           this.props.onSuccess(checkDesk)
         } catch (error) {
 
@@ -51,8 +51,12 @@ class NewCheckDesk extends React.Component {
   }
 
   async queryCourses() {
-    let coursesResult = await request.queryCourses({ pageSize: 10000 }, this.props.history)
-    this.setState({ courses: coursesResult.rows })
+    try {
+      let coursesResult = await request.queryCourses({ pageSize: 10000 }, this.props.history)
+      this.setState({ courses: coursesResult.rows })
+    } catch (error) {
+      
+    }
   }
 
   formItemLayout = {

@@ -140,7 +140,7 @@ class Profile extends React.Component {
           delete enrollment.courseAndPricePlanId
           await request.addEnrollment(enrollment)
           this.queryEnrollments()
-          message('新建报名报成功')
+          message.success('新建报名报成功')
         } catch (error) {
 
         } finally {
@@ -197,19 +197,15 @@ class Profile extends React.Component {
   async getProfile() {
     try {
       const userInfo = await request.getUserInfo(this.props.match.params.userId, this.props.history)
-      this.setState({
-        userInfo
-      })
+      this.setState({ userInfo })
     } catch (error) {
     }
 
   }
 
   async queryCheckRecords(query) {
+    this.setState({ checkRecordLoading: true })
     try {
-      this.setState({
-        checkRecordLoading: true
-      })
       let { count, rows: checkRecords } = await request.queryCheckRecords({ userId: this.props.match.params.userId, ...query }, this.props.history)
       const checkRecordPagination = { ...this.state.checkRecordPagination };
       checkRecordPagination.total = count;
@@ -220,14 +216,14 @@ class Profile extends React.Component {
       })
     } catch (error) {
 
+    } finally {
+      this.setState({ checkRecordLoading: false })
     }
   }
 
   async queryEnrollments(query) {
+    this.setState({ loading: true })
     try {
-      this.setState({
-        loading: true
-      })
       let { count, rows: enrollments } = await request.queryEnrollments({ userId: this.props.match.params.userId, ...query }, this.props.history)
       const pagination = { ...this.state.pagination };
       pagination.total = count;
@@ -238,6 +234,8 @@ class Profile extends React.Component {
       })
     } catch (error) {
 
+    } finally {
+      this.setState({ loading: false })
     }
   }
 
@@ -260,7 +258,7 @@ class Profile extends React.Component {
       delete checkRecord.courseId
       await request.addCheckRecord(checkRecord, this.props.history, { 428: () => '该用户已使用指定报名表在此签到表签到' })
       this.setState({ showNewCheckRecord: false })
-      message('添加签到表成功')
+      message.success('添加签到表成功')
       this.queryCheckRecords()
     } catch (error) {
 
@@ -391,7 +389,7 @@ class Profile extends React.Component {
             this.setState({ showNewEnrollment: false })
             this.queryEnrollments()
           }}
-       />
+        />
       </PageHeader>
     );
   }

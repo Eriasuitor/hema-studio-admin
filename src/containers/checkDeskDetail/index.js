@@ -86,15 +86,6 @@ class App extends React.Component {
     }
   };
 
-  queryCheckDesks = async () => {
-    let checkDeskResult = await request.queryCheckDesks({
-      courseId: this.props.match.params.courseId
-    }, this.props.history)
-    this.setState({
-      checkDesks: checkDeskResult.rows
-    })
-  };
-
   handleSearch = (selectedKeys, confirm) => {
     confirm();
     this.setState({ searchText: selectedKeys[0] });

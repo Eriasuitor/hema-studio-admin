@@ -4,20 +4,7 @@ import store from '../../reducer/index'
 import { Redirect } from 'react-router'
 import { unauthorized, login } from '../../reducer/actions'
 import { formatToInteger } from '../../util'
-import {
-  PageHeader, Tag, Tabs, Button, Statistic, Table, Icon, Col, Descriptions, Drawer, Form,
-  Input,
-  Tooltip,
-  Cascader,
-  Select,
-  Row,
-  Checkbox,
-  InputNumber,
-  Radio
-} from 'antd';
-import { getMembers } from '../../request'
-import { withRouter } from 'react-router'
-import * as moment from 'moment'
+import { Button, Drawer, Form, Input, Select, message, Radio } from 'antd';
 import * as request from '../../request'
 import { AccountStatus } from '../../common';
 import { thisExpression } from '@babel/types';
@@ -59,18 +46,20 @@ class NewUser extends React.Component {
     e.preventDefault();
     this.props.form.validateFieldsAndScroll(async (err, values) => {
       if (!err) {
-        this.setState({submitting: true})
-        delete values.courseId
-        let {success} = await request.addUser(values, this.props.history, {428: () => '该用户已使用指定报名表在此签到表签到'})
-        this.setState({submitting: false})
-        if(success !== false) {
-          alert('新增用户成功')
-          this.setState({show: false})
+        this.setState({ submitting: true })
+        try {
+          delete values.courseId
+          await request.addUser(values, this.props.history, { 428: () => '该用户已使用指定报名表在此签到表签到' })
+          message.success('新增用户成功')
           this.props.onSubmitted()
+        } catch (error) {
+
+        } finally {
+          this.setState({ show: false, submitting: false })
         }
       }
-    });
-  };
+    })
+  }
 
   handleClose = e => {
     e.preventDefault()
@@ -78,54 +67,27 @@ class NewUser extends React.Component {
   }
 
   async queryCourses() {
-    let courses = await request.queryCourses({ pageSize: 10000 }, this.props.history)
-    this.setState({ courses })
+    try {
+      let courses = await request.queryCourses({ pageSize: 10000 }, this.props.history)
+      this.setState({ courses })
+    } catch (error) {
+
+    }
   }
 
   async handleCourseChange(courseId) {
-    let [enrollmentsResult, checkDesksResult] = await Promise.all([
-      request.queryCheckDesks({ courseId })
-    ])
-    let enrollmentId = null
-    let checkDeskId = null
-    enrollmentsResult.count !== 0 && (enrollmentId = enrollmentsResult.rows[0].id)
-    checkDesksResult.count !== 0 && (checkDeskId = checkDesksResult.rows[0].id)
-    this.setState({ enrollments: enrollmentsResult.rows, checkDesks: checkDesksResult.rows, enrollmentId, checkDeskId })
-  }
+    try {
+      let [enrollmentsResult, checkDesksResult] = await Promise.all([
+        request.queryCheckDesks({ courseId })
+      ])
+      let enrollmentId = null
+      let checkDeskId = null
+      enrollmentsResult.count !== 0 && (enrollmentId = enrollmentsResult.rows[0].id)
+      checkDesksResult.count !== 0 && (checkDeskId = checkDesksResult.rows[0].id)
+      this.setState({ enrollments: enrollmentsResult.rows, checkDesks: checkDesksResult.rows, enrollmentId, checkDeskId })
+    } catch (error) {
 
-  async loadDate(selectedOptions) {
-    const targetOption = selectedOptions[selectedOptions.length - 1];
-    targetOption.loading = true;
-    switch (targetOption.type) {
-      case 'enrollment':
-        let enrollmentId
-        let checkRecords
-        break;
-
-      default:
-        let courseId = targetOption.value
-        let enrollments = await request.queryEnrollments({ userId: this.props.userInfo.id, courseId, status: 'confirmed' })
-        if (enrollments.count === 0) {
-          targetOption.children = [{
-            label: '无可用报名单',
-            disabled: true
-          }]
-        }
-        else {
-          targetOption.children = enrollments.rows.map(enrollment => ({
-            label: `${enrollment.name}-${enrollment.phone}-${enrollment.classBalance}`,
-            value: enrollment.id,
-            type: 'enrollment',
-            isLeaf: false
-          }))
-        }
-        break;
     }
-
-    targetOption.loading = false
-    this.setState({
-      courseOptions: [...this.state.courseOptions],
-    });
   }
 
   componentDidMount() {

@@ -164,7 +164,7 @@ class App extends React.Component {
           pagination={this.state.pagination}
           loading={this.state.loading}
           onChange={this.handleTableChange}
-          onRowClick={(checkDesk) => this.props.history.push(`/check-desks/${checkDesk.id}`)}
+//           onRowClick={(checkDesk) => this.props.history.push(`/check-desks/${checkDesk.id}`)}
           size="small"
           scroll={{x: 888}}
           style={{marginTop: '24px'}}

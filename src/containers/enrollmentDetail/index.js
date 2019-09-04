@@ -123,10 +123,7 @@ class App extends React.Component {
 
   async getEnrollment() {
     try {
-      console.log('1')
       const enrollment = await request.getEnrollment(this.props.match.params.enrollmentId, null, this.props.history)
-      console.log(enrollment)
-      console.log('?')
       this.setState({ enrollment })
     } catch (error) {
 
@@ -148,15 +145,6 @@ class App extends React.Component {
     } finally {
       this.setState({ loadingCheckRecords: false })
     }
-  };
-
-  queryCheckDesks = async () => {
-    let checkDeskResult = await request.queryCheckDesks({
-      courseId: this.props.match.params.courseId
-    }, this.props.history)
-    this.setState({
-      checkDesks: checkDeskResult.rows
-    })
   };
 
   handleSearch = (selectedKeys, confirm) => {

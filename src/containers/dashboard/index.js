@@ -1,10 +1,8 @@
 import { Menu, Icon, Card } from 'antd';
 import React from 'react';
-import { BrowserRouter as Router, Route, Link } from "react-router-dom";
-import store from '../../reducer/index'
 import { Redirect, withRouter } from 'react-router'
 import { unauthorized } from '../../reducer/actions'
-import { PageHeader, Tag, Tabs, Button, Statistic, Row, Col } from 'antd';
+import { Statistic, Row, Col } from 'antd';
 
 class Member extends React.Component {
   state = {

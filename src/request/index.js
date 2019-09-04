@@ -6,23 +6,23 @@ import { message } from 'antd'
 
 const diffStatusAction = {
 	500: () => {
-		return '服务器出现意料之外的错误'
+		return '服务器出现意料之外的错误！'
 	},
 	403: () => {
-		return '权限不足'
+		return '权限不足！'
 	},
 	401: (history) => {
 		const storage = window.localStorage;
 		storage.token = null;
 		store.dispatch(logOut())
 		history && history.push('/login')
-		return '请登录'
+		return '请登录！'
 	},
 	400: () => {
-		return '提交的数据不合法'
+		return '提交的数据不合法！'
 	},
 	404: () => {
-		return '功能已被迁移或永久移除'
+		return '功能已被迁移或永久移除！'
 	}
 }
 

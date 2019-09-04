@@ -225,28 +225,38 @@ class App extends React.Component {
   };
 
   getCourse = async () => {
-    let course = await request.getCourse(this.props.match.params.courseId, this.props.history)
-    this.setState({
-      course
-    })
+    try {
+      let course = await request.getCourse(this.props.match.params.courseId, this.props.history)
+      this.setState({
+        course
+      })
+    } catch (error) { }
   };
 
   queryEnrollments = async () => {
-    let enrollmentsResult = await request.queryEnrollments({
-      courseId: this.props.match.params.courseId,
-    }, this.props.history)
-    this.setState({
-      enrollments: enrollmentsResult.rows
-    })
+    try {
+      let enrollmentsResult = await request.queryEnrollments({
+        courseId: this.props.match.params.courseId,
+      }, this.props.history)
+      this.setState({
+        enrollments: enrollmentsResult.rows
+      })
+    } catch (error) {
+      
+    }
   };
 
   queryCheckDesks = async () => {
-    let checkDeskResult = await request.queryCheckDesks({
-      courseId: this.props.match.params.courseId
-    }, this.props.history)
-    this.setState({
-      checkDesks: checkDeskResult.rows
-    })
+    try {
+      let checkDeskResult = await request.queryCheckDesks({
+        courseId: this.props.match.params.courseId
+      }, this.props.history)
+      this.setState({
+        checkDesks: checkDeskResult.rows
+      })
+    } catch (error) {
+      
+    }
   };
 
   handleSearch = (selectedKeys, confirm) => {

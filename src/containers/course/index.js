@@ -11,7 +11,6 @@ import * as request from '../../request'
 import { withRouter } from 'react-router'
 import NewCourse from '../newCourse'
 import * as moment from 'moment'
-import './index.css'
 
 const { confirm } = Modal
 
@@ -60,14 +59,14 @@ class App extends React.Component {
     render: (text = '') => {
       text || (text = '')
       return <span className="ellipsis w1" title="">
-       <Highlighter
-        className='ellipsis w1'
-        highlightStyle={{ backgroundColor: '#ffc069', padding: 0 }}
-        searchWords={[this.state.searchText]}
-        autoEscape
-        overlayStyle={{backgroundColor: 'white'}}
-        textToHighlight={text.toString()}
-      />
+        <Highlighter
+          className='ellipsis w1'
+          highlightStyle={{ backgroundColor: '#ffc069', padding: 0 }}
+          searchWords={[this.state.searchText]}
+          autoEscape
+          overlayStyle={{ backgroundColor: 'white' }}
+          textToHighlight={text.toString()}
+        />
       </span>
     },
   });
@@ -100,10 +99,10 @@ class App extends React.Component {
       dataIndex: 'name',
       key: 'name',
       render: name => <Tooltip placement="topLeft" title={name}>
-      <span className="ellipsis w1" title="">
-        {name}
-      </span>
-    </Tooltip>,
+        <span className="ellipsis w1" title="">
+          {name}
+        </span>
+      </Tooltip>,
       ...this.getColumnSearchProps('name', '课程'),
     },
     {
@@ -179,13 +178,13 @@ class App extends React.Component {
   }
 
   deleteCourse = (course) => {
-    const {history} = this.props
+    const { history } = this.props
     const queryCourses = this.queryCourses
     confirm({
       title: `确定要删除“${course.name}”吗？`,
       content: '课程不允许被完全删除，此操作仅会将课程状态更改为“不可报名”状态。',
       onOk() {
-        return request.updateCourse(course.id, { status: 'disable' }, history).then(queryCourses)
+        return request.updateCourse(course.id, { status: 'disable' }, history).then(queryCourses).catch()
       },
       onCancel() { },
     });
@@ -193,14 +192,18 @@ class App extends React.Component {
 
   queryCourses = async (queryCondition) => {
     this.setState({ loadingCourses: true });
-    let courses = await request.queryCourses(queryCondition || this.state.queryCondition, this.props.history)
-    const pagination = { ...this.state.pagination };
-    pagination.total = courses.count;
-    this.setState({
-      loadingCourses: false,
-      courses: courses.rows,
-      pagination,
-    });
+    try {
+      let courses = await request.queryCourses(queryCondition || this.state.queryCondition, this.props.history)
+      const pagination = { ...this.state.pagination };
+      pagination.total = courses.count;
+      this.setState({
+        loadingCourses: false,
+        courses: courses.rows,
+        pagination,
+      });
+    } catch (error) {
+      this.setState({ loadingCourses: false });
+    }
   };
 
   handleSearch = (selectedKeys, confirm) => {
@@ -230,10 +233,10 @@ class App extends React.Component {
           pagination={this.state.pagination}
           loading={this.state.loadingCourses}
           onChange={this.handleTableChange}
-          onRowClick={(course) => this.props.history.push(`/courses/${course.id}`)}
+          //           onRowClick={(course) => this.props.history.push(`/courses/${course.id}`)}
           size="small"
           // , y: 'calc(100vh - 400px)'
-          scroll={{x: 888}}
+          scroll={{ x: 888 }}
           style={{ backgroundColor: 'white', marginTop: '24px' }}
         />
         <NewCourse key={this.state.newCourseKey} {...this.props} course={this.state.editingCourse} show={this.state.showNewUser} onClose={() => this.setState({ showNewUser: false })} onSuccess={() => {

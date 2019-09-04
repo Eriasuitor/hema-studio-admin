@@ -34,11 +34,11 @@ class NewCheckRecord extends React.Component {
         try {
           delete values.courseId
           const checkRecord = await request.addCheckRecord(values, this.props.history, { 428: () => '已使用该报名表在签到表上签到！' })
-          message.info('添加签到成功')
+          message.success('添加签到成功')
           this.props.onSuccess(checkRecord)
         } catch (error) {
 
-        } finally{
+        } finally {
           this.setState({ submitting: false })
         }
       }
@@ -55,55 +55,24 @@ class NewCheckRecord extends React.Component {
       let coursesResult = await request.queryCourses({ pageSize: 10000 })
       this.setState({ courses: coursesResult.rows })
     } catch (error) {
-      
+
     }
   }
 
   async handleCourseChange(courseId) {
-    let [enrollmentsResult, checkDesksResult] = await Promise.all([
-      request.queryEnrollments({ userId: this.props.userInfo.id, courseId, status: 'confirmed' }, this.props.history),
-      request.queryCheckDesks({ courseId }, this.props.history) 
-    ])
-    let enrollmentId = null
-    let checkDeskId = null
-    enrollmentsResult.count !== 0 && (enrollmentId = enrollmentsResult.rows[0].id)
-    checkDesksResult.count !== 0 && (checkDeskId = checkDesksResult.rows[0].id)
-    this.setState({ enrollments: enrollmentsResult.rows, checkDesks: checkDesksResult.rows, enrollmentId, checkDeskId })
-  }
+    try {
+      let [enrollmentsResult, checkDesksResult] = await Promise.all([
+        request.queryEnrollments({ userId: this.props.userInfo.id, courseId, status: 'confirmed' }, this.props.history),
+        request.queryCheckDesks({ courseId }, this.props.history)
+      ])
+      let enrollmentId = null
+      let checkDeskId = null
+      enrollmentsResult.count !== 0 && (enrollmentId = enrollmentsResult.rows[0].id)
+      checkDesksResult.count !== 0 && (checkDeskId = checkDesksResult.rows[0].id)
+      this.setState({ enrollments: enrollmentsResult.rows, checkDesks: checkDesksResult.rows, enrollmentId, checkDeskId })
+    } catch (error) {
 
-  async loadDate(selectedOptions) {
-    const targetOption = selectedOptions[selectedOptions.length - 1];
-    targetOption.loading = true;
-    switch (targetOption.type) {
-      case 'enrollment':
-        let enrollmentId
-        let checkRecords
-        break;
-
-      default:
-        let courseId = targetOption.value
-        let enrollments = await request.queryEnrollments({ userId: this.props.userInfo.id, courseId, status: 'confirmed' })
-        if (enrollments.count === 0) {
-          targetOption.children = [{
-            label: '无可用报名单',
-            disabled: true
-          }]
-        }
-        else {
-          targetOption.children = enrollments.rows.map(enrollment => ({
-            label: `${enrollment.name}-${enrollment.phone}-${enrollment.classBalance}`,
-            value: enrollment.id,
-            type: 'enrollment',
-            isLeaf: false
-          }))
-        }
-        break;
     }
-
-    targetOption.loading = false
-    this.setState({
-      courseOptions: [...this.state.courseOptions],
-    });
   }
 
   componentDidMount() {
