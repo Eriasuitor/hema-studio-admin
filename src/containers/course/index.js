@@ -83,7 +83,7 @@ class App extends React.Component {
     editingCourse: null,
     queryCondition: {},
     loadingCourses: false,
-    showNewUser: false,
+    showNewCourse: true,
   };
 
   columns = [
@@ -169,12 +169,12 @@ class App extends React.Component {
       this.lastCourseId = course.id
       this.setState({ editingCourse: course, newCourseKey: this.newCourseKey++ })
     }
-    this.setState({ showNewUser: true })
+    this.setState({ showNewCourse: true })
   }
 
   showNewCourse = () => {
     this.lastCourseId = 0
-    this.setState({ showNewUser: true, editingCourse: null, newCourseKey: this.newCourseKey++ })
+    this.setState({ showNewCourse: true, editingCourse: null, newCourseKey: this.newCourseKey++ })
   }
 
   deleteCourse = (course) => {
@@ -239,8 +239,8 @@ class App extends React.Component {
           scroll={{ x: 888 }}
           style={{ backgroundColor: 'white', marginTop: '24px' }}
         />
-        <NewCourse key={this.state.newCourseKey} {...this.props} course={this.state.editingCourse} show={this.state.showNewUser} onClose={() => this.setState({ showNewUser: false })} onSuccess={() => {
-          this.setState({ showNewUser: false })
+        <NewCourse key={this.state.newCourseKey} {...this.props} course={this.state.editingCourse} show={this.state.showNewCourse} onClose={() => this.setState({ showNewCourse: false })} onSuccess={() => {
+          this.setState({ showNewCourse: false })
           this.queryCourses()
         }}></NewCourse>
       </PageHeader>

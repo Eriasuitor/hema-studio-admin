@@ -29,6 +29,7 @@ class NewCourse extends React.Component {
         name: 'iPhone X',
         amount: 0
       }],
+      classSchedules: [],
       images: ['https://cdn.pixabay.com/photo/2014/12/15/17/16/pier-569314__340.jpg'],
       aims: ['add one', 'to be a better man'],
       for: ['you'],
@@ -61,6 +62,10 @@ class NewCourse extends React.Component {
   componentWillMount() {
     this.handleClose = this.handleClose.bind(this)
     if (this.props.course) {
+      this.props.course.classSchedules.forEach(_ => {
+        _.from = moment(_.from).format("hh:mm")
+        _.to = moment(_.to).format("hh:mm")
+      })
       this.actionDescription = '编辑'
       this.buttonDescription = '保存'
       this.setState({ course: this.props.course, statusDescription: '编辑' })
@@ -85,10 +90,14 @@ class NewCourse extends React.Component {
       if (!err) {
         try {
           this.setState({ submitting: true });
-          ['aims', 'for', 'presents', 'pricePlans'].forEach(field => {
+          ['aims', 'for', 'presents', 'pricePlans', 'classSchedules'].forEach(field => {
             const counter = `${field}Counter`
             values[field] = values[counter].map(index => values[field][index])
             delete values[counter]
+          })
+          values.classSchedules.forEach(schedule => {
+            schedule.from = `1.1 ${schedule.from}`
+            schedule.to = `1.1 ${schedule.to}`
           })
           this.setState({ statusDescription: '获取上传链接' })
           const originFileObjList = []
@@ -120,7 +129,7 @@ class NewCourse extends React.Component {
             course = await request.addCourse(values, this.props.history)
             message.success('创建成功！', 3)
           } else {
-            course = await request.updateCourse(this.props.course.id, values, this.props.history, {404: () => ""})
+            course = await request.updateCourse(this.props.course.id, values, this.props.history, { 404: () => "" })
             message.success('保存成功！', 3)
           }
           this.props.onSuccess(course)
@@ -221,7 +230,6 @@ class NewCourse extends React.Component {
               </Select>,
             )}
           </Form.Item> */}
-
           {
             this.props.course ? <div><Form.Item label="支持试听">
               {getFieldDecorator('supportAudition', {
@@ -246,6 +254,20 @@ class NewCourse extends React.Component {
             { id: 'class', precision: 0, min: 0, placeholder: '课时', rules: [], prefix: '包含', suffix: '课时', width: '44%' },
             { id: 'knockValue', precision: 2, min: 0, initialValue: 0, placeholder: '立减', rules: [], prefix: '立减', suffix: '元', width: '44%' },
             { id: 'hitValue', precision: 1, min: 0, max: 10, initialValue: 10, placeholder: '折扣', rules: [], prefix: '折扣', suffix: '折', width: '44%' },
+          ]}>
+          </InputList>
+          <InputList min={1} initialValue={this.state.course.classSchedules} id="classSchedules" placeholder="上课时间" mode="numbers" label="上课时间" note="" required={true} form={this.props.form} multipleInputs={[
+            { id: 'dayOfWeek', type: 'select', options: [
+              { title: '周一', value: '1' },
+              { title: '周二', value: '2' },
+              { title: '周三', value: '3' },
+              { title: '周四', value: '4' },
+              { title: '周五', value: '5' },
+              { title: '周六', value: '6' },
+              { title: '周日', value: '7' },
+            ], min: 0, placeholder: '每', prefix: '每', width: '90%', rules: [] },
+            { id: 'from', initialValue: new Date(), type: 'date', format: "h:mm A", placeholder: '自', rules: [], prefix: '自', width: '43%' },
+            { id: 'to', initialValue: new Date(), type: 'date', format: "h:mm A", placeholder: '到', rules: [], prefix: '到', width: '43%' },
           ]}>
           </InputList>
           <InputList initialValue={this.state.course.aims} id="aims" label="课程目标" form={this.props.form} placeholder="课程目标" rules={[{ max: 1024, message: '课程目标最长为1024字' }]}></InputList>
