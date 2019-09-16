@@ -59,10 +59,19 @@ class NewCheckRecord extends React.Component {
     }
   }
 
+  userId = null
+
+  async handleUserIdChange(e) {
+    console.log('???')
+    console.log(e.target.value)
+    this.userId = e.target.value
+  }
+
   async handleCourseChange(courseId) {
+    console.log('????')
     try {
       let [enrollmentsResult, checkDesksResult] = await Promise.all([
-        request.queryEnrollments({ userId: this.props.userInfo.id, courseId, status: 'confirmed' }, this.props.history),
+        request.queryEnrollments({ userId: this.userId, courseId, status: 'confirmed' }, this.props.history),
         request.queryCheckDesks({ courseId }, this.props.history)
       ])
       let enrollmentId = null
@@ -71,7 +80,7 @@ class NewCheckRecord extends React.Component {
       checkDesksResult.count !== 0 && (checkDeskId = checkDesksResult.rows[0].id)
       this.setState({ enrollments: enrollmentsResult.rows, checkDesks: checkDesksResult.rows, enrollmentId, checkDeskId })
     } catch (error) {
-
+      console.log(error)
     }
   }
 
@@ -96,7 +105,7 @@ class NewCheckRecord extends React.Component {
     return (
       <Drawer
         title="新建签到表"
-        width={520}
+        width={552}
         closable={false}
         onClose={this.props.onClose}
         visible={this.props.show}
@@ -110,7 +119,9 @@ class NewCheckRecord extends React.Component {
                 { type: 'number', min: 1000, max: 9999, message: '学号为4为数字' },
               ],
               getValueFromEvent: formatToInteger()
-            })(<Input />)}
+            })(<Input 
+              onChange={this.handleUserIdChange.bind(this)}
+            />)}
           </Form.Item>
           <Form.Item label="课程">
             {getFieldDecorator('courseId', {
@@ -163,7 +174,7 @@ class NewCheckRecord extends React.Component {
               style={{
                 marginRight: 8,
               }}
-              onClick={() => { }}
+              onClick={this.props.onClose}
             >
               取消
             </Button>

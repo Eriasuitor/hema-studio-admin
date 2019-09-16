@@ -123,7 +123,7 @@ class App extends React.Component {
       title: '性别',
       sorter: true,
       dataIndex: 'gender',
-      render: gender => gender? (gender === 'male'? '男': '女') : '未知',
+      render: gender => gender ? (gender === 'male' ? '男' : '女') : '未知',
     },
     {
       title: '手机号码',
@@ -180,7 +180,7 @@ class App extends React.Component {
   ];
 
   enrollmentStatusMap = {
-    
+
   }
 
   statusMapping = {
@@ -227,7 +227,7 @@ class App extends React.Component {
         enrollments: enrollmentsResult.rows
       })
     } catch (error) {
-      
+
     }
   };
 
@@ -240,7 +240,7 @@ class App extends React.Component {
         checkDesks: checkDeskResult.rows
       })
     } catch (error) {
-      
+
     }
   };
 
@@ -290,7 +290,7 @@ class App extends React.Component {
                 pagination={this.state.checkDeskPagination}
                 loading={this.state.loadingCheckDesk}
                 onChange={this.handleCheckRecordTableChange}
-                scroll={{x: 888}}
+                scroll={{ x: 888 }}
                 size="small"
                 style={{ backgroundColor: 'white', padding: '24px' }}
               />
@@ -308,10 +308,15 @@ class App extends React.Component {
           <Descriptions.Item label="创建时间">{moment(this.state.course.createdAt).format('YYYY-MM-DD HH:mm')}</Descriptions.Item>
           <Descriptions.Item label="描述">{this.state.course.description}</Descriptions.Item>
         </Descriptions>
-        <NewCheckDesk show={this.state.showNewCheckDesk} checkDesk={{courseId: this.props.match.params.courseId}} onClose={() => this.setState({ showNewCheckDesk: false })} onSuccess={() => {
-          this.setState({ showNewCheckDesk: false })
-          this.queryCheckDesks()
-        }}></NewCheckDesk>
+        <NewCheckDesk
+          show={this.state.showNewCheckDesk}
+          checkDesk={{ courseId: this.props.match.params.courseId }}
+          onClose={() => this.setState({ showNewCheckDesk: false })}
+          onSuccess={() => {
+            this.setState({ showNewCheckDesk: false })
+            this.queryCheckDesks()
+          }}>
+        </NewCheckDesk>
       </PageHeader>
     );
   }

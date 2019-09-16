@@ -100,7 +100,7 @@ class App extends React.Component {
   // createdAt: joi.date().required(),
 
   columns = [
-    { title: 'ID', dataIndex: 'id', sorter: true, render: id => <a onClick={() => this.props.history.push(`/enrollments/${id}`)}>{id}</a> },
+    { title: 'ID', dataIndex: 'id', sorter: true, render: id => <a onClick={() => this.props.history.push(`/check-desks/${id}`)}>{id}</a> },
     { title: '学号', dataIndex: 'userId', sorter: true, render: id => <a onClick={() => this.props.history.push(`/member/${id}`)}>{id}</a> },
     { title: '课程', dataIndex: 'courseId', sorter: true, render: id => <a onClick={() => this.props.history.push(`/courses/${id}`)}>{id}</a> },
     { title: '地址', dataIndex: 'address', render: text => <span className='ellipsis'>{text}</span> },

@@ -83,7 +83,7 @@ class App extends React.Component {
     editingCourse: null,
     queryCondition: {},
     loadingCourses: false,
-    showNewCourse: true,
+    showNewCourse: false,
   };
 
   columns = [
@@ -209,12 +209,12 @@ class App extends React.Component {
   handleSearch = (selectedKeys, confirm) => {
     confirm();
     this.setState({ searchText: selectedKeys[0] });
-  };
+  }
 
   handleReset = clearFilters => {
     clearFilters();
     this.setState({ searchText: undefined });
-  };
+  }
 
 
   render() {

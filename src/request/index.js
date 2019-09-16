@@ -112,7 +112,7 @@ export function addEnrollment(data, history) {
 }
 
 export async function getEnrollment(enrollmentId, history) {
-	const {rows} = await get(`/enrollments?id=${enrollmentId}`, undefined, history)
+	const { rows } = await get(`/enrollments?id=${enrollmentId}`, undefined, history)
 	return rows[0]
 }
 
@@ -122,7 +122,7 @@ export async function getEnrollment(enrollmentId, history) {
  * @param {*} history 
  * @param {*} statusHandler 
  */
-export function addCheckDesk( data, history, statusHandler) {
+export function addCheckDesk(data, history, statusHandler) {
 	let { courseId } = data
 	delete data.courseId
 	return post(`/courses/${courseId}/check-desks`, data, history, statusHandler)
@@ -163,4 +163,12 @@ export async function postImage(url, file, history, statusHandler) {
 		},
 		mode: 'cors'
 	})
+}
+
+export async function addHomework(checkDeskId, data, history, statusHandler) {
+	return post(`/check-desks/${checkDeskId}/homeworks`, data, history, statusHandler)
+}
+
+export async function queryHomeworks(checkDeskId, query, history, statusHandler) {
+	return get(`/check-desks/${checkDeskId}/homeworks`, query, history, statusHandler)
 }
