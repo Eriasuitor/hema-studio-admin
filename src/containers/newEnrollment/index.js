@@ -17,7 +17,8 @@ class NewEnrollment extends React.Component {
       gender: 'female',
       status: 'confirmed'
     },
-    submitting: false
+    submitting: false,
+    type: 'create'
   };
 
   constructor(props) {
@@ -27,12 +28,14 @@ class NewEnrollment extends React.Component {
 
   componentWillMount() {
     this.queryCourses()
-    this.setState({
-      enrollment: {
-        ...this.state.enrollment,
-        ...this.props.enrollment
-      }
-    })
+    if (this.props.enrollment) {
+      this.setState({
+        enrollment: {
+          ...this.state.enrollment,
+          ...this.props.enrollment
+        },
+      })
+    }
   }
 
   handleSubmit = e => {
@@ -43,8 +46,14 @@ class NewEnrollment extends React.Component {
         try {
           values.pricePlanId = values.courseAndPricePlanId[1]
           delete values.courseAndPricePlanId
-          const enrollment = await request.addEnrollment(values)
-          message.success('新建报名表成功')
+          let enrollment = null
+          if (this.props.enrollment) {
+            enrollment = await request.addEnrollment(values)
+            message.success('保存报名表成功')
+          } else {
+            enrollment = await request.updateCourse(this.props.enrollment.id, values)
+            message.success('新建报名表成功')
+          }
           this.props.onSuccess(enrollment)
         } catch (error) {
 
@@ -205,7 +214,7 @@ class NewEnrollment extends React.Component {
           </div>
         </Form>
       </Drawer>
-    );
+    )
   }
 }
 

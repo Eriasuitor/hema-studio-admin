@@ -111,6 +111,10 @@ export function addEnrollment(data, history) {
 	return post(`/users/${userId}/enrollments`, data, history)
 }
 
+export function updateEnrollment(enrollmentId, data, history) {
+	return put(`/enrollments/${enrollmentId}`, data, history)
+}
+
 export async function getEnrollment(enrollmentId, history) {
 	const { rows } = await get(`/enrollments?id=${enrollmentId}`, undefined, history)
 	return rows[0]
@@ -136,6 +140,10 @@ export function addCheckRecord(data, history, statusHandler) {
 	let { checkDeskId } = data
 	delete data.checkDeskId
 	return post(`/check-desks/${checkDeskId}/check-records`, data, history, statusHandler)
+}
+
+export function updateCheckDesk(checkDeskId, data, history, statusHandler) {
+	return put(`/check-desks/${checkDeskId}`, data, history, statusHandler)
 }
 
 export function addUser(data, history, statusHandler) {

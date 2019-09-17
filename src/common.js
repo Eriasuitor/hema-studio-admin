@@ -8,3 +8,7 @@ export const AccountStatus = {
 	normal: '正常',
 	disable: '不可用'
 } 
+export const CheckDeskStatus = {
+	ongoing: '可签到',
+	closed: '不可签到'
+}

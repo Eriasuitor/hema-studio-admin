@@ -13,6 +13,7 @@ import NewCourse from '../newCourse'
 import * as moment from 'moment'
 import NewCheckDesk from '../newCheckDesk'
 import * as tool from '../../util'
+import { CheckDeskStatus } from '../../common'
 
 const { confirm } = Modal
 
@@ -89,7 +90,8 @@ class App extends React.Component {
     queryCondition: {},
     loading: true,
     showNewCheckDesk: false,
-    checkDesks: []
+    checkDesks: [],
+    editingCheckDesk: {},
   };
 
   // id: common.generalId().required(),
@@ -99,14 +101,37 @@ class App extends React.Component {
   // address: joi.string().max(100).allow(null),
   // createdAt: joi.date().required(),
 
+  ststusMapping = {
+    ongoing: '可'
+  }
+
   columns = [
     { title: 'ID', dataIndex: 'id', sorter: true, render: id => <a onClick={() => this.props.history.push(`/check-desks/${id}`)}>{id}</a> },
     { title: '学号', dataIndex: 'userId', sorter: true, render: id => <a onClick={() => this.props.history.push(`/member/${id}`)}>{id}</a> },
     { title: '课程', dataIndex: 'courseId', sorter: true, render: id => <a onClick={() => this.props.history.push(`/courses/${id}`)}>{id}</a> },
     { title: '地址', dataIndex: 'address', render: text => <span className='ellipsis'>{text}</span> },
     { title: '序号', dataIndex: 'order' },
+    { title: '状态', dataIndex: 'status', sorter: true, render: value => CheckDeskStatus[value] },
     { title: '创建时间', dataIndex: 'createdAt', sorter: true, render: tool.formatDate },
+    {
+      title: '操作', render: checkDesk =>
+        <span>
+          <a
+            style={{ marginRight: '5px' }}
+            onClick={this.editCheckDesk.bind(this, checkDesk)}>
+            <Icon type="edit" />
+          </a>
+        </span>
+    }
   ];
+  newCheckDeskKey = 0
+  editCheckDesk(checkDesk) {
+    this.setState({
+      newCheckDeskKey: this.newCheckDeskKey++,
+      showNewCheckDesk: true,
+      editingCheckDesk: checkDesk
+    })
+  }
 
   componentDidMount() {
     this.queryCheckDesks();
@@ -123,7 +148,7 @@ class App extends React.Component {
     sorter.field && (queryCondition.orderBy = sorter.field)
     sorter.order && (queryCondition.isDesc = sorter.order === 'descend' ? true : false)
 
-    if(queryCondition.name) {
+    if (queryCondition.name) {
       queryCondition.nameMatch = queryCondition.name
       delete queryCondition.name
     }
@@ -146,14 +171,18 @@ class App extends React.Component {
     } finally {
       this.setState({ loading: false });
     }
-  };
+  }
+
+  showNewCheckDesk() {
+
+  }
 
   render() {
     return (
       <PageHeader
         title="所有报名表"
         extra={[
-            <Button key="1" type='primary' onClick={() => this.setState({ showNewCheckDesk: true })}>新增签到单</Button>,
+          <Button key="1" type='primary' onClick={() => this.setState({ showNewCheckDesk: true, newCheckDeskKey: this.newCheckDeskKey++, editingCheckDesk: null })}>新增签到单</Button>,
           // <Button key="2" onClick={() => this.setState({ showNewCheckRecordPanel: true })}>新增签到</Button>
         ]}
       >
@@ -164,23 +193,26 @@ class App extends React.Component {
           pagination={this.state.pagination}
           loading={this.state.loading}
           onChange={this.handleTableChange}
-//           onRowClick={(checkDesk) => this.props.history.push(`/check-desks/${checkDesk.id}`)}
+          //           onRowClick={(checkDesk) => this.props.history.push(`/check-desks/${checkDesk.id}`)}
           size="small"
-          scroll={{x: 888}}
-          style={{marginTop: '24px'}}
+          scroll={{ x: 888 }}
+          style={{ marginTop: '24px' }}
         />
         <NewCourse key={this.state.newCourseKey} {...this.props} course={this.state.editingCourse} show={this.state.showNewUser} onClose={() => this.setState({ showNewUser: false })} onSuccess={() => {
           this.setState({ showNewUser: false })
           this.queryCourses()
         }}></NewCourse>
         <NewCheckDesk
+          key={this.state.newCheckDeskKey}
           show={this.state.showNewCheckDesk}
+          checkDesk={this.state.editingCheckDesk}
+          mode={this.state.editingCheckDesk? 'edit': 'create'}
           onClose={() => this.setState({ showNewCheckDesk: false })}
           onSuccess={() => {
             this.setState({ showNewCheckDesk: false })
             this.queryCheckDesks()
           }}
-       />
+        />
       </PageHeader>
     );
   }

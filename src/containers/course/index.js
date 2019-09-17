@@ -239,10 +239,16 @@ class App extends React.Component {
           scroll={{ x: 888 }}
           style={{ backgroundColor: 'white', marginTop: '24px' }}
         />
-        <NewCourse key={this.state.newCourseKey} {...this.props} course={this.state.editingCourse} show={this.state.showNewCourse} onClose={() => this.setState({ showNewCourse: false })} onSuccess={() => {
-          this.setState({ showNewCourse: false })
-          this.queryCourses()
-        }}></NewCourse>
+        <NewCourse
+          key={this.state.newCourseKey}
+          {...this.props}
+          course={this.state.editingCourse}
+          show={this.state.showNewCourse}
+          onClose={() => this.setState({ showNewCourse: false })}
+          onSuccess={() => {
+            this.setState({ showNewCourse: false })
+            this.queryCourses()
+          }}></NewCourse>
       </PageHeader>
     );
   }

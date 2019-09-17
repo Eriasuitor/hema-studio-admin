@@ -88,8 +88,12 @@ class App extends React.Component {
     queryCondition: {},
     loading: true,
     showNewEnrollment: false,
-    enrollments: []
-  };
+    enrollments: [],
+    newEnrollmentKey: 0,
+    editingEnrollment: {}
+  }
+  
+  newEnrollmentKey = 0
 
   enrollmentStatusMap = {
     created: '待支付',
@@ -109,6 +113,16 @@ class App extends React.Component {
     { title: '创建时间', dataIndex: 'createdAt', render: value => moment(value).format('YYYY-MM-DD HH-mm') },
     { title: '价格', dataIndex: 'pricePlan.discountedPrice' },
     { title: '课时总额', dataIndex: 'pricePlan.class' },
+    {
+      title: '操作', render: enrollment =>
+        <span>
+          <a
+            style={{ marginRight: '5px' }}
+            onClick={this.editEnrollment.bind(this, enrollment)}>
+            <Icon type="edit" />
+          </a>
+        </span>
+    }
   ];
 
   statusMapping = {
@@ -134,12 +148,20 @@ class App extends React.Component {
     sorter.field && (queryCondition.orderBy = sorter.field)
     sorter.order && (queryCondition.isDesc = sorter.order === 'descend' ? true : false)
 
-    if(queryCondition.name) {
+    if (queryCondition.name) {
       queryCondition.nameMatch = queryCondition.name
       delete queryCondition.name
     }
     this.queryEnrollments(queryCondition);
-  };
+  }
+
+  editEnrollment = async (enrollment) => {
+    this.setState({
+      editingEnrollment: enrollment,
+      newEnrollmentKey: this.newEnrollmentKey++,
+      showNewEnrollment: true
+    })
+  }
 
   queryEnrollments = async (queryCondition) => {
     this.setState({ loading: true });
@@ -157,14 +179,22 @@ class App extends React.Component {
     } finally {
       this.setState({ loading: false });
     }
-  };
+  }
+
+  showNewEnrollment() {
+    this.setState({
+      editingEnrollment: {},
+      newEnrollmentKey: this.newEnrollmentKey++,
+      showNewEnrollment: true
+    })
+  }
 
   render() {
     return (
       <PageHeader
         title="所有报名表"
         extra={[
-            <Button key="1" type='primary' onClick={() => this.setState({ showNewEnrollment: true })}>新增报名单</Button>,
+          <Button key="1" type='primary' onClick={this.showNewEnrollment}>新增报名单</Button>,
           // <Button key="2" onClick={() => this.setState({ showNewCheckRecordPanel: true })}>新增签到</Button>
         ]}
       >
@@ -175,23 +205,25 @@ class App extends React.Component {
           pagination={this.state.pagination}
           loading={this.state.loading}
           onChange={this.handleTableChange}
-//           onRowClick={(enrollment) => this.props.history.push(`/enrollments/${enrollment.id}`)}
+          //           onRowClick={(enrollment) => this.props.history.push(`/enrollments/${enrollment.id}`)}
           size="small"
-          scroll={{x: 888}}
-          style={{marginTop: '24px'}}
+          scroll={{ x: 888 }}
+          style={{ marginTop: '24px' }}
         />
         <NewCourse key={this.state.newCourseKey} {...this.props} course={this.state.editingCourse} show={this.state.showNewUser} onClose={() => this.setState({ showNewUser: false })} onSuccess={() => {
           this.setState({ showNewUser: false })
           this.queryCourses()
         }}></NewCourse>
         <NewEnrollment
+          key={this.state.newEnrollmentKey}
           show={this.state.showNewEnrollment}
+          enrollment={this.state.editingEnrollment}
           onClose={() => this.setState({ showNewEnrollment: false })}
           onSuccess={() => {
             this.setState({ showNewEnrollment: false })
             this.queryEnrollments()
           }}
-       />
+        />
       </PageHeader>
     );
   }
