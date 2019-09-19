@@ -48,10 +48,10 @@ class NewEnrollment extends React.Component {
           delete values.courseAndPricePlanId
           let enrollment = null
           if (this.props.enrollment) {
-            enrollment = await request.updateCourse(values)
+            enrollment = await request.updateEnrollment(this.props.enrollment.id, values)
             message.success('保存报名表成功')
           } else {
-            enrollment = await request.addEnrollment(this.props.enrollment.id, values)
+            enrollment = await request.addEnrollment(values)
             message.success('新建报名表成功')
           }
           this.props.onSuccess(enrollment)
