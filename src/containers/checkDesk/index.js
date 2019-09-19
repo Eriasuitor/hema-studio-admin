@@ -94,17 +94,6 @@ class App extends React.Component {
     editingCheckDesk: {},
   };
 
-  // id: common.generalId().required(),
-  // userId: common.userId().required(),
-  // courseId: common.generalId().required(),
-  // order: common.generalId().required(),
-  // address: joi.string().max(100).allow(null),
-  // createdAt: joi.date().required(),
-
-  ststusMapping = {
-    ongoing: '可'
-  }
-
   columns = [
     { title: 'ID', dataIndex: 'id', sorter: true, render: id => <a onClick={() => this.props.history.push(`/check-desks/${id}`)}>{id}</a> },
     { title: '学号', dataIndex: 'userId', sorter: true, render: id => <a onClick={() => this.props.history.push(`/member/${id}`)}>{id}</a> },

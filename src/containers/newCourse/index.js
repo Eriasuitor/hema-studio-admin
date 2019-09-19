@@ -96,8 +96,8 @@ class NewCourse extends React.Component {
             delete values[counter]
           })
           values.classSchedules.forEach(schedule => {
-            schedule.from = `1.1 ${schedule.from}`
-            schedule.to = `1.1 ${schedule.to}`
+            schedule.from = `${schedule.from}`
+            schedule.to = `${schedule.to}`
           })
           this.setState({ statusDescription: '获取上传链接' })
           const originFileObjList = []
@@ -264,7 +264,7 @@ class NewCourse extends React.Component {
               { title: '周四', value: '4' },
               { title: '周五', value: '5' },
               { title: '周六', value: '6' },
-              { title: '周日', value: '7' },
+              { title: '周日', value: '0' },
             ], min: 0, placeholder: '每', prefix: '每', width: '90%', rules: [] },
             { id: 'from', initialValue: new Date(), type: 'date', format: "h:mm A", placeholder: '自', rules: [], prefix: '自', width: '43%' },
             { id: 'to', initialValue: new Date(), type: 'date', format: "h:mm A", placeholder: '到', rules: [], prefix: '到', width: '43%' },
