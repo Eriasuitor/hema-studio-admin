@@ -151,7 +151,7 @@ class App extends React.Component {
       title: '编号',
       dataIndex: 'id',
       sorter: true,
-      render: id => <a onClick={() => this.props.history.push(`/courses/${id}`)}>{id}</a>,
+      render: id => <a onClick={() => this.props.history.push(`/check-desks/${id}`)}>{id}</a>,
     },
     {
       title: '序号',
@@ -311,6 +311,7 @@ class App extends React.Component {
         <NewCheckDesk
           show={this.state.showNewCheckDesk}
           checkDesk={{ courseId: this.props.match.params.courseId }}
+          mode="create"
           onClose={() => this.setState({ showNewCheckDesk: false })}
           onSuccess={() => {
             this.setState({ showNewCheckDesk: false })

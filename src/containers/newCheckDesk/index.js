@@ -33,7 +33,7 @@ class NewCheckDesk extends React.Component {
         this.setState({ submitting: true })
         try {
           let checkDesk = null
-          if (this.props.checkDesk) {
+          if (this.state.mode === 'edit') {
             checkDesk = await request.updateCheckDesk(this.props.checkDesk.id, values, this.props.history)
             message.success('保存成功！')
           } else {
@@ -51,8 +51,6 @@ class NewCheckDesk extends React.Component {
   }
 
   componentWillMount() {
-    console.log(this.props.checkDesk)
-    console.log(this.props.mode || this.state.mode)
     if (this.props.checkDesk) {
       this.setState({
         mode: this.props.mode || this.state.mode,

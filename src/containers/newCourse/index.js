@@ -62,10 +62,6 @@ class NewCourse extends React.Component {
   componentWillMount() {
     this.handleClose = this.handleClose.bind(this)
     if (this.props.course) {
-      this.props.course.classSchedules.forEach(_ => {
-        _.from = moment(_.from).format("hh:mm")
-        _.to = moment(_.to).format("hh:mm")
-      })
       this.actionDescription = '编辑'
       this.buttonDescription = '保存'
       this.setState({ course: this.props.course, statusDescription: '编辑' })
@@ -266,8 +262,8 @@ class NewCourse extends React.Component {
               { title: '周六', value: '6' },
               { title: '周日', value: '0' },
             ], min: 0, placeholder: '每', prefix: '每', width: '90%', rules: [] },
-            { id: 'from', initialValue: new Date(), type: 'date', format: "h:mm A", placeholder: '自', rules: [], prefix: '自', width: '43%' },
-            { id: 'to', initialValue: new Date(), type: 'date', format: "h:mm A", placeholder: '到', rules: [], prefix: '到', width: '43%' },
+            { id: 'from', initialValue: '', type: 'date', placeholder: '自', rules: [], prefix: '自', width: '43%' },
+            { id: 'to', initialValue: '', type: 'date', placeholder: '到', rules: [], prefix: '到', width: '43%' },
           ]}>
           </InputList>
           <InputList initialValue={this.state.course.aims} id="aims" label="课程目标" form={this.props.form} placeholder="课程目标" rules={[{ max: 1024, message: '课程目标最长为1024字' }]}></InputList>
