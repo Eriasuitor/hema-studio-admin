@@ -84,64 +84,53 @@ class App extends React.Component {
     },
     queryCondition: {},
     loading: false,
-    showNewUser: false
+    showNewUser: false,
+    newUserKey: 1,
+    newUserMode: 'create',
+    user: {}
   };
 
   columns = [
+    { title: '', dataIndex: 'avatar', render: value => <Avatar src={value} style={{ backgroundColor: '#87d068' }} icon="user" />, },
+    { title: '学号', dataIndex: 'id', sorter: true, render: id => <a onClick={() => this.props.history.push(`/member/${id}`)}>{id}</a>, },
+    { title: '姓名', sorter: true, key: 'nickname', dataIndex: 'nickname', ...this.getColumnSearchProps('nickname', '昵称'), },
+    { title: '性别', sorter: true, dataIndex: 'gender', render: gender => gender ? gender === 'male' ? '男' : '女' : '未知', },
+    { title: '密码', dataIndex: 'password', render: password => <span className="ellipsis w1" title="">{password}</span> },
+    { title: '手机号', sorter: true, dataIndex: 'phone', },
+    { title: '地区', sorter: true, render: user => user.country ? `${user.country} ${user.province} ${user.city}` : "", },
+    { title: '创建时间', sorter: true, dataIndex: 'createdAt', render: date => moment(date).format('YYYY-MM-DD HH:mm'), },
     {
-      title: '',
-      dataIndex: 'avatar',
-      render: value => <Avatar src={value} style={{ backgroundColor: '#87d068' }} icon="user" />,
-    },
-     {
-      title: '学号',
-      dataIndex: 'id',
-      sorter: true,
-      render: id => <a onClick={() => this.props.history.push(`/member/${id}`)}>{id}</a>,
-    },
-    {
-      title: '姓名',
-      sorter: true,
-      key: 'nickname',
-      dataIndex: 'nickname',
-      ...this.getColumnSearchProps('nickname', '昵称'),
-    },
-    {
-      title: '性别',
-      sorter: true,
-      dataIndex: 'gender',
-      render: gender => gender ? gender === 'male' ? '男' : '女' : '未知',
-    },
-    {
-      title: '密码',
-      dataIndex: 'password',
-      render: password => <span className="ellipsis w1" title="">{password}</span>
-    },
-    {
-      title: '手机号',
-      sorter: true,
-      dataIndex: 'phone',
-    },
-    {
-      title: '地区',
-      sorter: true,
-      render: user => user.country ? `${user.country} ${user.province} ${user.city}` : "",
-    },
-    {
-      title: '创建时间',
-      sorter: true,
-      dataIndex: 'createdAt',
-      render: date => moment(date).format('YYYY-MM-DD HH:mm'),
-    },
-    {
-      title: 'unionId',
-      sorter: true,
-      dataIndex: 'unionId',
-    },
+      title: '操作', render: user =>
+        <span>
+          <a
+            style={{ marginRight: '5px' }}
+            onClick={this.editUser.bind(this, user)}>
+            <Icon type="edit" />
+          </a>
+        </span>
+    }
   ];
 
   componentDidMount() {
     this.fetch();
+  }
+
+  newUser() {
+    this.setState({
+      showNewUser: true,
+      newUserKey: this.state.newUserKey + 1,
+      newUserMode: 'create',
+      user: {}
+    })
+  }
+
+  editUser(user) {
+    this.setState({
+      showNewUser: true,
+      newUserKey: this.state.newUserKey + 1,
+      newUserMode: 'edit',
+      user
+    })
   }
 
   handleTableChange = (pagination, filters, sorter) => {
@@ -158,7 +147,7 @@ class App extends React.Component {
     sorter.order && (queryCondition.isDesc = sorter.order === 'descend' ? true : false)
     this.setState({ queryCondition })
     this.fetch(queryCondition, this.props.history);
-  };
+  }
 
   fetch = async (query = { pageSize: 20, page: 1 }) => {
     // this.setState({ loading: true });
@@ -174,17 +163,17 @@ class App extends React.Component {
     } catch (error) {
 
     }
-  };
+  }
 
   handleSearch = (selectedKeys, confirm) => {
     confirm();
     this.setState({ searchText: selectedKeys[0] });
-  };
+  }
 
   handleReset = clearFilters => {
     clearFilters();
     this.setState({ searchText: undefined });
-  };
+  }
 
 
   render() {
@@ -192,7 +181,7 @@ class App extends React.Component {
       <PageHeader
         title="所有用户"
         extra={[
-          <Button key="1" type='primary' onClick={() => this.setState({ showNewUser: true })}>创建学员</Button>
+          <Button key="1" type='primary' onClick={this.newUser.bind(this)}>创建学员</Button>
           // <Button key="2" onClick={() => this.setState({ showNewCheckRecordPanel: true })}>新增签到</Button>
         ]}
       >
@@ -211,14 +200,21 @@ class App extends React.Component {
           pagination={this.state.pagination}
           loading={this.state.loading}
           onChange={this.handleTableChange}
-//           onRowClick={(userInfo) => this.props.history.push(`/member/${userInfo.id}`)}
-          scroll={{x: 888 }}
+          //           onRowClick={(userInfo) => this.props.history.push(`/member/${userInfo.id}`)}
+          scroll={{ x: 888 }}
           size="small"
         />
-        <NewUser show={this.state.showNewUser} onClose={() => this.setState({ showNewUser: false })} onSubmitted={() => {
-          this.setState({ showNewUser: false })
-          this.fetch()
-        }}></NewUser>
+        <NewUser
+          show={this.state.showNewUser}
+          onClose={() => this.setState({ showNewUser: false })}
+          user={this.state.user}
+          key={this.state.newUserKey}
+          mode={this.state.newUserMode}
+          onSubmitted={() => {
+            this.setState({ showNewUser: false })
+            this.fetch()
+          }}
+        />
       </PageHeader>
     );
   }

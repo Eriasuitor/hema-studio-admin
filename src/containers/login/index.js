@@ -3,7 +3,7 @@ import { Form, Icon, Input, Button, Checkbox, PageHeader, Tag, Tabs, Statistic, 
 import './index.css'
 import { Redirect } from 'react-router'
 import store from '../../reducer/index'
-import {withRouter} from 'react-router'
+import { withRouter } from 'react-router'
 
 class Login extends React.Component {
   constructor(props) {
@@ -11,6 +11,22 @@ class Login extends React.Component {
     var storage = window.localStorage;
     if (storage.token)
       store.dispatch(store.actions.login(storage.token))
+  }
+
+  componentDidMount() {
+    fetch(`http://18.162.46.127:3801/campaign/5ozl0egzep/report-render?token=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOjEzLCJyaWdodHMiOnsia29sIjp0cnVlLCJidXNpbmVzcyI6dHJ1ZX0sImlhdCI6MTU2Mzc3ODg1NH0.4cI2NPxtCpqLK8wMRF2vVYFdLLbsIkb2U6xzdH5udN8`,
+      {
+        method: 'POST'
+      }
+    ).then(async res => {
+      const blob = await res.blob()
+      const a = window.document.createElement('a');
+      const downUrl = window.URL.createObjectURL(blob);// 获取 blob 本地文件连接 (blob 为纯二进制对象，不能够直接保存到磁盘上)
+      const filename = res.headers.get('Content-Disposition').split('filename=')[1].split('.');
+      a.href = downUrl;
+      a.download = `${decodeURI(filename[0])}.${filename[1]}`;
+      a.click();
+    })
   }
   handleSubmit = e => {
     e.preventDefault();

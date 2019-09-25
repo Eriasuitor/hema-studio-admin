@@ -26,15 +26,19 @@ const diffStatusAction = {
 	}
 }
 
-export function responseStatusHandle(res, history, statusHandler = {}) {
+export function responseNot2StatusHandle(res, history, statusHandler = {}) {
 	if (res.status < 200 || res.status >= 300) {
 		const handler = statusHandler[res.status] || diffStatusAction[res.status]
 		res.handleMessage = handler ? handler(history) : ""
 		const error = new Error(res.message)
 		error.res = res
 		throw error
+	}
+}
 
-	} else if ([204, 205].includes(res.status)) {
+export function responseStatusHandle(res, history, statusHandler = {}) {
+	responseNot2StatusHandle(res, history, statusHandler)
+	if ([204, 205].includes(res.status)) {
 		return null
 	}
 	return res.json()
@@ -150,6 +154,10 @@ export function addUser(data, history, statusHandler) {
 	return post(`/users`, data, history, statusHandler)
 }
 
+export function updateUser(userId, data, history, statusHandler) {
+	return put(`/users/${userId}`, data, history, statusHandler)
+}
+
 export function addCourse(data, history, statusHandler) {
 	return post(`/courses`, data, history, statusHandler)
 }
@@ -170,7 +178,7 @@ export async function postImage(url, file, history, statusHandler) {
 			'Content-Type': 'application/octet-stream',
 		},
 		mode: 'cors'
-	})
+	}).then(res => responseNot2StatusHandle(res, history, statusHandler)).catch(handleError)
 }
 
 export async function addHomework(checkDeskId, data, history, statusHandler) {

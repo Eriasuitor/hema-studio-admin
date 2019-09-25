@@ -8,6 +8,7 @@ import { Button, Drawer, Form, Input, Select, message, Radio } from 'antd';
 import * as request from '../../request'
 import { AccountStatus } from '../../common';
 import { thisExpression } from '@babel/types';
+import { ImageCard } from '../../components/imageCard'
 
 const { Option } = Select;
 
@@ -19,7 +20,6 @@ class NewUser extends React.Component {
       visible: true,
     },
     courses: [],
-    mode: 'inline',
     theme: 'light',
     userInfo: {},
     enrollments: [],
@@ -33,14 +33,13 @@ class NewUser extends React.Component {
       pageSize: 10
     },
     loading: false,
-    checkRecordLoading: false
+    checkRecordLoading: false,
+    user: {
+      status: 'normal'
+    },
+    mode: 'create',
+    statusDescription: '确认'
   };
-
-  constructor(props) {
-    super(props)
-    store.dispatch(login(window.localStorage.token))
-    this.handleClose = this.handleClose.bind(this)
-  }
 
   handleSubmit = e => {
     e.preventDefault();
@@ -48,51 +47,62 @@ class NewUser extends React.Component {
       if (!err) {
         this.setState({ submitting: true })
         try {
-          delete values.courseId
-          await request.addUser(values, this.props.history, { 428: () => '该用户已使用指定报名表在此签到表签到' })
-          message.success('新增用户成功')
+          this.setState({ statusDescription: '获取上传链接' })
+          const originFileObjList = []
+          const fileInfos = []
+          if(values.avatars) {
+            if (values.avatars.length > 1) {
+              return message.warn('头像只能上传一张图片')
+            }
+            values.avatars.filter(image => !image.url).forEach(image => {
+              originFileObjList.push(image.originFileObj)
+              fileInfos.push({
+                fileName: image.name,
+                fileType: image.type,
+                size: image.size,
+                lastModified: image.lastModified,
+              })
+            })
+            if(fileInfos.length !== 0) {
+              const urls = await request.getOssUrls({ type: 'cover', fileInfos }, this.props.history)
+              this.setState({ statusDescription: '上传图片' })
+              for (let i = 0; i < urls.length; i++) {
+                await request.postImage(urls[i], originFileObjList[i], this.props.history)
+              }
+              let counter = 0
+              values.avatars = values.avatars.map(image => image.url || `${urls[counter++].match(/(^.*?)\?/)[1]}!saver`)
+            }
+            values.avatar = values.avatars[0]
+            delete values.avatars
+          }
+          this.setState({ statusDescription: '保存数据' })
+          if (this.state.mode === 'create') {
+            await request.addUser(values, this.props.history)
+            message.success('创建成功')
+          } else {
+            await request.updateUser(this.props.user.id, values, this.props.history)
+            message.success('保存成功')
+          }
           this.props.onSubmitted()
         } catch (error) {
-
+          console.log(error)
         } finally {
-          this.setState({ show: false, submitting: false })
+          this.setState({ show: false, submitting: false, statusDescription: '确认' })
         }
       }
     })
   }
 
-  handleClose = e => {
-    e.preventDefault()
-    this.props.onClose()
-  }
-
-  async queryCourses() {
-    try {
-      let courses = await request.queryCourses({ pageSize: 10000 }, this.props.history)
-      this.setState({ courses })
-    } catch (error) {
-
-    }
-  }
-
-  async handleCourseChange(courseId) {
-    try {
-      let [enrollmentsResult, checkDesksResult] = await Promise.all([
-        request.queryCheckDesks({ courseId })
-      ])
-      let enrollmentId = null
-      let checkDeskId = null
-      enrollmentsResult.count !== 0 && (enrollmentId = enrollmentsResult.rows[0].id)
-      checkDesksResult.count !== 0 && (checkDeskId = checkDesksResult.rows[0].id)
-      this.setState({ enrollments: enrollmentsResult.rows, checkDesks: checkDesksResult.rows, enrollmentId, checkDeskId })
-    } catch (error) {
-
-    }
-  }
-
   componentDidMount() {
-    this.setState({ show: this.props.show })
-    this.queryCourses()
+    if (this.props.user) {
+      this.setState({
+        mode: this.props.mode || this.state.mode,
+        user: {
+          ...this.state.user,
+          ...this.props.user,
+        }
+      })
+    }
   }
 
   render() {
@@ -111,7 +121,7 @@ class NewUser extends React.Component {
 
     return (
       <Drawer
-        title="新建报名单"
+        title={`${this.state.mode === 'create' ? '创建' : '编辑'}学员`}
         width={520}
         closable={false}
         onClose={this.props.onClose}
@@ -120,6 +130,7 @@ class NewUser extends React.Component {
         <Form {...formItemLayout} onSubmit={this.handleSubmit}>
           <Form.Item label="昵称">
             {getFieldDecorator('nickname', {
+              initialValue: this.state.user.nickname,
               rules: [
                 { required: true, message: '请输入昵称' },
                 { max: 32, message: '昵称最长为32位' },
@@ -128,9 +139,9 @@ class NewUser extends React.Component {
           </Form.Item>
           <Form.Item label="性别">
             {getFieldDecorator('gender', {
-              initialValue: 'female',
+              initialValue: this.state.user.gender,
               rules: [
-                { required: true, message: '请选择性别' },
+                // { required: true, message: '请选择性别' },
               ]
             })(<Radio.Group >
               <Radio value='male'>男</Radio>
@@ -139,25 +150,35 @@ class NewUser extends React.Component {
           </Form.Item>
           <Form.Item label="手机号">
             {getFieldDecorator('phone', {
+              initialValue: this.state.user.phone,
               rules: [
-                { required: true, message: '请输入手机号' },
+                // { required: true, message: '请输入手机号' },
                 { pattern: /^\d{6,15}$/, message: '手机号均为数字且准许长度为6-15位' }
               ]
             })(<Input></Input>)}
           </Form.Item>
           <Form.Item label="密码">
             {getFieldDecorator('password', {
+              initialValue: this.state.user.password,
               rules: [
-                { required: true, message: '请输入密码' },
+                // { required: true, message: '请输入密码' },
                 { max: 32, message: '密码最长为32位' },
               ]
             })(<Input></Input>)}
           </Form.Item>
+          <Form.Item label="头像" extra="上传一张图片作为该用户的头像">
+            {getFieldDecorator('avatars', {
+              rules: [
+              ]
+            })(
+              <ImageCard initialValue={[this.state.user.avatar]} />
+            )}
+          </Form.Item>
           <Form.Item label="状态">
             {getFieldDecorator('status', {
-              initialValue: 'normal',
+              initialValue: this.state.user.status,
               rules: [
-                { required: true, message: '请选择状态' },
+                // { required: true, message: '请选择状态' },
               ]
             })(<Radio.Group>
               {Object.keys(AccountStatus).map(status => <Radio.Button value={status}>{AccountStatus[status]}</Radio.Button>)}
@@ -174,6 +195,7 @@ class NewUser extends React.Component {
               left: 0,
               background: '#fff',
               borderRadius: '0 0 4px 4px',
+              zIndex: 2
             }}
           >
             <Button
@@ -188,7 +210,7 @@ class NewUser extends React.Component {
               重置
             </Button>
             <Button type="primary" htmlType="submit" loading={this.state.submitting}>
-              确认
+              {this.state.statusDescription}
             </Button>
           </div>
           {/* </Form.Item> */}
