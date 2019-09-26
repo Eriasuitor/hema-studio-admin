@@ -120,7 +120,8 @@ class App extends React.Component {
   queryHomeworks = async (queryCondition) => {
     this.setState({ loadingHomeworks: true })
     try {
-      const { count, rows } = await request.queryHomeworks(this.props.match.params.checkDeskId, queryCondition, this.props.history)
+      queryCondition.checkDeskId = this.props.match.params.checkDeskId
+      const { count, rows } = await request.queryHomeworks(queryCondition, this.props.history)
       const pagination = { ...this.state.homeworksPagination };
       pagination.total = count;
       this.setState({

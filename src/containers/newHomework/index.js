@@ -42,6 +42,7 @@ class App extends React.Component {
           const fileInfos = []
           const {checkDeskId} = values
           delete values.checkDeskId
+          values.images = values.images || []
           values.images.filter(image => !image.url).forEach(image => {
             originFileObjList.push(image.originFileObj)
             fileInfos.push({
@@ -63,7 +64,7 @@ class App extends React.Component {
           message.success('创建作业成功')
           this.props.onSuccess(homework)
         } catch (error) {
-
+          console.log(error)
         } finally {
           this.setState({ submitting: false })
           this.setState({ statusDescription: '确认' })

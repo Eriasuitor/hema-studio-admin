@@ -185,6 +185,6 @@ export async function addHomework(checkDeskId, data, history, statusHandler) {
 	return post(`/check-desks/${checkDeskId}/homeworks`, data, history, statusHandler)
 }
 
-export async function queryHomeworks(checkDeskId, query, history, statusHandler) {
-	return get(`/check-desks/${checkDeskId}/homeworks`, query, history, statusHandler)
+export async function queryHomeworks( query, history, statusHandler) {
+	return get('/homeworks', query, history, statusHandler)
 }
