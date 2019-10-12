@@ -75,7 +75,8 @@ class NewCourse extends React.Component {
   }
 
   componentDidMount() {
-    this.setState({ show: this.props.show })
+    this.state.course.pricePlans.forEach(_ => _.hitValue = parseFloat(_.hitValue ) * 10)
+    this.setState({ show: this.props.show, course: this.state.course })
   }
 
   getFieldDecorator = this.props.form.getFieldDecorator
@@ -231,7 +232,7 @@ class NewCourse extends React.Component {
               {getFieldDecorator('supportAudition', {
                 valuePropName: 'checked',
                 initialValue: this.state.course.supportAudition,
-              })(<Switch />)}
+              })(<Switch disabled />)}
             </Form.Item>
               <Form.Item label="状态">
                 {getFieldDecorator('status', {
@@ -242,7 +243,12 @@ class NewCourse extends React.Component {
                     <Option value="disable">不可报名</Option>
                   </Select>,
                 )}
-              </Form.Item></div> : <span></span>
+              </Form.Item></div> : <Form.Item label="支持试听">
+              {getFieldDecorator('supportAudition', {
+                valuePropName: 'checked',
+                initialValue: this.state.course.supportAudition,
+              })(<Switch />)}
+            </Form.Item>
           }
 
           <InputList note={`正式价格 = (原价 - 立减) × 折扣 / 10 `} min={1} initialValue={this.state.course.pricePlans} id="pricePlans" placeholder="方案" mode="numbers" label="价格方案" required={true} form={this.props.form} multipleInputs={[
