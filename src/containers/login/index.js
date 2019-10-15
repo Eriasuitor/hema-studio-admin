@@ -31,29 +31,22 @@ class Login extends React.Component {
   }
   handleSubmit = e => {
     e.preventDefault();
-    this.props.form.validateFields((err, values) => {
+    this.props.form.validateFields(async (err, values) => {
       if (!err) {
-        login(values, {
+        const body = await login(values, {
           400: () => "请输入正确的账户格式",
-          401: () => "账户或密码错误",
-          200: (res) => {
-            res.json().then(body => {
-              store.dispatch(store.actions.login(body.token))
-              const storage = window.localStorage;
-              storage.token = body.token;
-              console.log(storage.toke)
-              this.props.history.goBack()
-              })
-          },
+          401: () => "账户或密码错误"
         })
-        console.log('Received values of form: ', values);
+        store.dispatch(store.actions.login(body.token))
+        const storage = window.localStorage;
+        storage.token = body.token;
+        this.props.history.goBack()
       }
     });
   };
 
   render() {
     const { getFieldDecorator } = this.props.form;
-    console.log(store.getState().token)
     // if (store.getState().token) return (<Redirect to='/index' />)
     return (
       <div className='wholeBk'>
