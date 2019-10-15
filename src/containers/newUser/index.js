@@ -4,7 +4,7 @@ import store from '../../reducer/index'
 import { Redirect } from 'react-router'
 import { unauthorized, login } from '../../reducer/actions'
 import { formatToInteger } from '../../util'
-import { Button, Drawer, Form, Input, Select, message, Radio } from 'antd';
+import { Button, Drawer, Form, Input, Select, message, Radio, Checkbox } from 'antd';
 import * as request from '../../request'
 import { AccountStatus } from '../../common';
 import { thisExpression } from '@babel/types';
@@ -35,7 +35,8 @@ class NewUser extends React.Component {
     loading: false,
     checkRecordLoading: false,
     user: {
-      status: 'normal'
+      status: 'normal',
+      roles: []
     },
     mode: 'create',
     statusDescription: '确认'
@@ -85,7 +86,7 @@ class NewUser extends React.Component {
           }
           this.props.onSubmitted()
         } catch (error) {
-          console.log(error)
+          this.setState({ submitting: false, statusDescription: '确认' })
         } finally {
           this.setState({ show: false, submitting: false, statusDescription: '确认' })
         }
@@ -171,7 +172,7 @@ class NewUser extends React.Component {
               rules: [
               ]
             })(
-              <ImageCard initialValue={[this.state.user.avatar]} />
+              <ImageCard initialValue={this.state.user.avatar? [this.state.user.avatar]: []} />
             )}
           </Form.Item>
           <Form.Item label="状态">
@@ -183,6 +184,16 @@ class NewUser extends React.Component {
             })(<Radio.Group>
               {Object.keys(AccountStatus).map(status => <Radio.Button value={status}>{AccountStatus[status]}</Radio.Button>)}
             </Radio.Group>)}
+          </Form.Item>
+          <Form.Item label="角色" extra="添加为管理员但未设置密码的账户将不可登录管理员平台">
+            {getFieldDecorator('roles', {
+              initialValue: this.state.user.roles.map(_ => _.role),
+              rules: [
+                // { required: true, message: '请选择状态' },
+              ]
+            })(<Checkbox.Group
+              options={[{ label: '管理员', value: 'admin' }]}
+            />)}
           </Form.Item>
           <div
             style={{

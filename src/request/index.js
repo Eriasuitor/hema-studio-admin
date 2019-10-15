@@ -52,7 +52,12 @@ export function handleError(err) {
 
 export async function get(url, query = {}, history, statusHandler) {
 	Object.keys(query).forEach(key => (query[key] === undefined || query[key].length === 0) && delete query[key])
-	let body = await fetch(`${config.host}${url}?${Object.keys(query).map(key => query[key] === undefined ? '' : `${key}=${query[key]}`).join('&')}`, {
+	let body = await fetch(`${config.host}${url}?${Object.keys(query).map(key => {
+		if( Array.isArray(query[key])) {
+			return query[key].map(value => `${key}[]=${value}`).join('&')
+		}
+		return `${key}=${query[key]}`
+	}).join('&')}`, {
 		method: 'GET',
 		headers: {
 			Authorization: `Bearer ${store.getState().token}`

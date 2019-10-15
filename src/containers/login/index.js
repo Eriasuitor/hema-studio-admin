@@ -33,17 +33,21 @@ class Login extends React.Component {
     e.preventDefault();
     this.props.form.validateFields(async (err, values) => {
       if (!err) {
-        const body = await login(values, {
-          400: () => "请输入正确的账户格式",
-          401: () => "账户或密码错误"
-        })
-        store.dispatch(store.actions.login(body.token))
-        const storage = window.localStorage;
-        storage.token = body.token;
-        this.props.history.goBack()
+        try {
+          const body = await login(values, {
+            400: () => "请输入正确的账户格式",
+            401: () => "账户或密码错误"
+          })
+          store.dispatch(store.actions.login(body.token))
+          const storage = window.localStorage;
+          storage.token = body.token;
+          this.props.history.goBack()
+        } catch (error) {
+
+        }
       }
-    });
-  };
+    })
+  }
 
   render() {
     const { getFieldDecorator } = this.props.form;
