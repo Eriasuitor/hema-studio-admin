@@ -2,6 +2,7 @@ import React from 'react';
 import { Form, Icon, Input, Button, Checkbox, PageHeader, Tag, Tabs, Statistic, Row, Col } from 'antd';
 import './index.css'
 import { Redirect } from 'react-router'
+import { login } from '../../request'
 import store from '../../reducer/index'
 import { withRouter } from 'react-router'
 
@@ -14,48 +15,37 @@ class Login extends React.Component {
   }
 
   componentDidMount() {
-    fetch(`http://18.162.46.127:3801/campaign/5ozl0egzep/report-render?token=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOjEzLCJyaWdodHMiOnsia29sIjp0cnVlLCJidXNpbmVzcyI6dHJ1ZX0sImlhdCI6MTU2Mzc3ODg1NH0.4cI2NPxtCpqLK8wMRF2vVYFdLLbsIkb2U6xzdH5udN8`,
-      {
-        method: 'POST'
-      }
-    ).then(async res => {
-      const blob = await res.blob()
-      const a = window.document.createElement('a');
-      const downUrl = window.URL.createObjectURL(blob);// 获取 blob 本地文件连接 (blob 为纯二进制对象，不能够直接保存到磁盘上)
-      const filename = res.headers.get('Content-Disposition').split('filename=')[1].split('.');
-      a.href = downUrl;
-      a.download = `${decodeURI(filename[0])}.${filename[1]}`;
-      a.click();
-    })
+    // fetch(`http://18.162.46.127:3801/campaign/5ozl0egzep/report-render?token=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOjEzLCJyaWdodHMiOnsia29sIjp0cnVlLCJidXNpbmVzcyI6dHJ1ZX0sImlhdCI6MTU2Mzc3ODg1NH0.4cI2NPxtCpqLK8wMRF2vVYFdLLbsIkb2U6xzdH5udN8`,
+    //   {
+    //     method: 'POST'
+    //   }
+    // ).then(async res => {
+    //   const blob = await res.blob()
+    //   const a = window.document.createElement('a');
+    //   const downUrl = window.URL.createObjectURL(blob);// 获取 blob 本地文件连接 (blob 为纯二进制对象，不能够直接保存到磁盘上)
+    //   const filename = res.headers.get('Content-Disposition').split('filename=')[1].split('.');
+    //   a.href = downUrl;
+    //   a.download = `${decodeURI(filename[0])}.${filename[1]}`;
+    //   a.click();
+    // })
   }
   handleSubmit = e => {
     e.preventDefault();
     this.props.form.validateFields((err, values) => {
       if (!err) {
-        fetch('http://localhost:10086/users/admin-login', { method: 'POST', body: JSON.stringify(values), headers: { 'content-type': 'application/json' } })
-          .then(res => {
-            switch (res.status) {
-              case 400:
-                alert('请输入正确的账户格式')
-                break;
-              case 401:
-                alert('账户或密码错误')
-                break;
-              case 200:
-                res.json().then(body => {
-                  store.dispatch(store.actions.login(body.token))
-                  const storage = window.localStorage;
-                  storage.token = body.token;
-                  console.log(storage.toke)
-                  this.props.history.goBack()
-                })
-                break;
-              default:
-                alert('服务器失联')
-                break;
-            }
-          })
-
+        login(values, {
+          400: () => "请输入正确的账户格式",
+          401: () => "账户或密码错误",
+          200: (res) => {
+            res.json().then(body => {
+              store.dispatch(store.actions.login(body.token))
+              const storage = window.localStorage;
+              storage.token = body.token;
+              console.log(storage.toke)
+              this.props.history.goBack()
+              })
+          },
+        })
         console.log('Received values of form: ', values);
       }
     });

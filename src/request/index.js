@@ -85,6 +85,10 @@ export async function post(url, data = {}, history, statusHandler) {
 	return body
 }
 
+export function login(body, statusHandler) {
+	return post('/users/admin-login', body, undefined, statusHandler)
+}
+
 export function getMembers(query, history) {
 	return get('/users', query, history)
 }
