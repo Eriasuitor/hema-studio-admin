@@ -6,7 +6,7 @@ import store from '../../reducer/index'
 import { Redirect } from 'react-router'
 import Highlighter from 'react-highlight-words';
 import { unauthorized, login } from '../../reducer/actions'
-import { PageHeader, Tag, Tabs, Button, Modal, Row, Col } from 'antd';
+import { PageHeader, Tag, Tabs, Button, Modal, Row, Avatar } from 'antd';
 import * as request from '../../request'
 import { withRouter } from 'react-router'
 import NewCourse from '../newCourse'
@@ -66,15 +66,7 @@ class App extends React.Component {
         setTimeout(() => this.searchInput.select());
       }
     },
-    render: (text = '') => {
-      return <Highlighter
-        highlightStyle={{ backgroundColor: '#ffc069', padding: 0 }}
-        searchWords={[this.state.searchText]}
-        autoEscape
-        textToHighlight={text}
-      />
-    },
-  });
+  })
 
   state = {
     courses: [],
@@ -90,7 +82,8 @@ class App extends React.Component {
     showNewEnrollment: false,
     enrollments: [],
     newEnrollmentKey: 0,
-    editingEnrollment: {}
+    editingEnrollment: {},
+    newEnrollmentType: 'create'
   }
   
   newEnrollmentKey = 0
@@ -103,16 +96,22 @@ class App extends React.Component {
   }
 
   columns = [
-    { title: 'ID', dataIndex: 'id', sorter: true, render: id => <a onClick={() => this.props.history.push(`/enrollments/${id}`)}>{id}</a> },
+    { title: '单号', dataIndex: 'id', sorter: true, render: id => <a onClick={() => this.props.history.push(`/enrollments/${id}`)}>{id}</a> },
+    { title: '', dataIndex: 'user.avatar', render: value => <Avatar src={value} style={{ backgroundColor: '#87d068' }} icon="user" />, },
     { title: '学号', dataIndex: 'userId', sorter: true, render: id => <a onClick={() => this.props.history.push(`/member/${id}`)}>{id}</a> },
-    { title: '课程', dataIndex: 'courseId', sorter: true, render: id => <a onClick={() => this.props.history.push(`/courses/${id}`)}>{id}</a> },
+    { title: '昵称', dataIndex: 'user', key: 'user.nicknameMatch', ...this.getColumnSearchProps('nickname', '昵称'), render: user => <a onClick={() => this.props.history.push(`/member/${user.id}`)}>{user.nickname}</a> },
+    { title: '姓名', dataIndex: 'name', key: 'enrollment.nameMatch', ...this.getColumnSearchProps('name', '姓名') },
+    { title: '手机号', dataIndex: 'phone', key: 'enrollment.phoneMatch', ...this.getColumnSearchProps('phone', '手机号') },
+    { title: '性别', dataIndex: 'gender',  filters: [{text: '男', value: 'male'}, {text: '女', value: 'female'}], render: value => value === 'male'? '男': '女'},
+    { title: '课程', dataIndex: 'course', key: 'course.nameMatch', ...this.getColumnSearchProps('courseName', '课程名称'), render: course => <a onClick={() => this.props.history.push(`/courses/${course.id}`)}>{course.name}</a> },
     { title: '剩余课时', dataIndex: 'classBalance', sorter: true },
-    { title: '姓名', dataIndex: 'name', ...this.getColumnSearchProps('name', '姓名') },
-    { title: '手机号', dataIndex: 'phone' },
-    { title: '状态', dataIndex: 'status', render: value => this.enrollmentStatusMap[value] },
+    { title: '总课时', dataIndex: 'pricePlan.class'},
+    { title: '价格', dataIndex: 'pricePlan.discountedPrice', render: value => `¥${value}` },
+    { title: '状态', dataIndex: 'status', filters: Object.keys(this.enrollmentStatusMap).map(value => ({
+      text: this.enrollmentStatusMap[value],
+      value
+    })), render: value => this.enrollmentStatusMap[value] },
     { title: '创建时间', dataIndex: 'createdAt', render: value => moment(value).format('YYYY-MM-DD HH-mm') },
-    { title: '价格', dataIndex: 'pricePlan.discountedPrice' },
-    { title: '课时总额', dataIndex: 'pricePlan.class' },
     {
       title: '操作', render: enrollment =>
         <span>
@@ -148,10 +147,6 @@ class App extends React.Component {
     sorter.field && (queryCondition.orderBy = sorter.field)
     sorter.order && (queryCondition.isDesc = sorter.order === 'descend' ? true : false)
 
-    if (queryCondition.name) {
-      queryCondition.nameMatch = queryCondition.name
-      delete queryCondition.name
-    }
     this.queryEnrollments(queryCondition);
   }
 
@@ -159,7 +154,8 @@ class App extends React.Component {
     this.setState({
       editingEnrollment: enrollment,
       newEnrollmentKey: this.newEnrollmentKey++,
-      showNewEnrollment: true
+      showNewEnrollment: true,
+      newEnrollmentType: 'edit'
     })
   }
 
@@ -194,7 +190,7 @@ class App extends React.Component {
       <PageHeader
         title="所有报名表"
         extra={[
-          <Button key="1" type='primary' onClick={this.showNewEnrollment}>新增报名单</Button>,
+          <Button key="1" type='primary' onClick={this.showNewEnrollment.bind(this)}>新增报名单</Button>,
           // <Button key="2" onClick={() => this.setState({ showNewCheckRecordPanel: true })}>新增签到</Button>
         ]}
       >
@@ -217,6 +213,7 @@ class App extends React.Component {
         <NewEnrollment
           key={this.state.newEnrollmentKey}
           show={this.state.showNewEnrollment}
+          type={this.state.newEnrollmentType}
           enrollment={this.state.editingEnrollment}
           onClose={() => this.setState({ showNewEnrollment: false })}
           onSuccess={() => {

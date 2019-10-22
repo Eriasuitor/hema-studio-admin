@@ -113,12 +113,11 @@ class App extends React.Component {
         {description}
       </span>,
     },
-    // {
-    //   title: '支持试听',
-    //   sorter: true,
-    //   dataIndex: 'supportAudition',
-    //   render: supportAudition => supportAudition? '是' : '否' ,
-    // },
+    {
+      title: '支持试听',
+      dataIndex: 'supportAudition',
+      render: supportAudition => supportAudition? '是' : '否' ,
+    },
     {
       title: '状态',
       sorter: true,
@@ -147,7 +146,6 @@ class App extends React.Component {
   lastCourseId = 0
 
   componentDidMount() {
-    console.log(this.state.pagination)
     this.queryCourses();
   }
 

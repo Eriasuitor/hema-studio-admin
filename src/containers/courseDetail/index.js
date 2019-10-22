@@ -7,6 +7,7 @@ import { unauthorized, login } from '../../reducer/actions'
 import { PageHeader, Tag, Tabs, Button, Statistic, Row, Col } from 'antd';
 import { withRouter } from 'react-router'
 import NewCheckDesk from '../newCheckDesk'
+import NewEnrollment from '../newEnrollment'
 import * as moment from 'moment'
 import * as request from '../../request'
 import { EnrollmentStatus } from '../../common'
@@ -91,7 +92,8 @@ class App extends React.Component {
     loadingCheckDesk: false,
     queryCondition: {},
     loadingCourses: false,
-    showNewCheckDesk: false
+    showNewCheckDesk: false,
+    showNewEnrollment: false
   };
 
   enrollmentColumns = [
@@ -265,12 +267,12 @@ class App extends React.Component {
         onBack={() => this.props.history.goBack()}
         title={this.state.course.name}
         extra={[
-          <Button key="1" type='primary' onClick={() => this.setState({ showNewCheckDesk: true })}>新建签到单</Button>
-          // <Button key="2" onClick={() => this.setState({ showNewCheckRecordPanel: true })}>新增签到</Button>
+          <Button key="1" type='primary' onClick={() => this.setState({ showNewCheckDesk: true })}>新建签到单</Button>,
+          <Button key="2" onClick={() => this.setState({ showNewEnrollment: true })}>新增报名</Button>
         ]}
         footer={
           <Tabs defaultActiveKey="1">
-            <TabPane tab="报名单" key="1">
+            <TabPane tab="所有报名" key="1">
               <Table
                 columns={this.enrollmentColumns}
                 rowKey={_ => _.id}
@@ -310,7 +312,7 @@ class App extends React.Component {
         </Descriptions>
         <NewCheckDesk
           show={this.state.showNewCheckDesk}
-          checkDesk={{ courseId: this.props.match.params.courseId }}
+          checkDesk={{ courseId: parseInt(this.props.match.params.courseId)}}
           mode="create"
           onClose={() => this.setState({ showNewCheckDesk: false })}
           onSuccess={() => {
@@ -318,6 +320,15 @@ class App extends React.Component {
             this.queryCheckDesks()
           }}>
         </NewCheckDesk>
+        <NewEnrollment
+          show={this.state.showNewEnrollment}
+          enrollment={{courseId: parseInt(this.props.match.params.courseId) }}
+          onClose={() => this.setState({ showNewEnrollment: false })}
+          onSuccess={() => {
+            this.setState({ showNewEnrollment: false })
+            this.queryEnrollments()
+          }}
+        />
       </PageHeader>
     );
   }

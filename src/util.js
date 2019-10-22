@@ -20,6 +20,16 @@ export function resolveGender(gender) {
 	return humanReadableGenderMap[gender] || '未知'
 }
 
+const enrollmentStatus = Object.freeze({
+	created: '待支付',
+	paid: '待确认',
+	confirmed: '已确认',
+	expired: '已过期'
+})
+export function resolveEnrollmentStatus(status) {
+	return enrollmentStatus[status] || '未知'
+}
+
 export function formatDate(date) {
 	return moment(date).format('YYYY-MM-DD HH:mm')
 }

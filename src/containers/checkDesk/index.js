@@ -81,7 +81,7 @@ class App extends React.Component {
   state = {
     courses: [],
     pagination: {
-      pageSize: 10,
+      pageSize: 15,
       showQuickJumper: true,
       showTotal: (total) => `共${total}条目`,
       total: 0
@@ -96,11 +96,10 @@ class App extends React.Component {
 
   columns = [
     { title: 'ID', dataIndex: 'id', sorter: true, render: id => <a onClick={() => this.props.history.push(`/check-desks/${id}`)}>{id}</a> },
-    { title: '学号', dataIndex: 'userId', sorter: true, render: id => <a onClick={() => this.props.history.push(`/member/${id}`)}>{id}</a> },
-    { title: '课程', dataIndex: 'courseId', sorter: true, render: id => <a onClick={() => this.props.history.push(`/courses/${id}`)}>{id}</a> },
+    { title: '课程', dataIndex: 'course', key: 'course.nameMatch', ...this.getColumnSearchProps('course', '课程名称'), render: course => <a onClick={() => this.props.history.push(`/courses/${course.id}`)}>{course.name}</a> },
     { title: '地址', dataIndex: 'address', render: text => <span className='ellipsis'>{text}</span> },
     { title: '序号', dataIndex: 'order' },
-    { title: '状态', dataIndex: 'status', sorter: true, render: value => CheckDeskStatus[value] },
+    { title: '状态', dataIndex: 'status', filters: [{text: '可签到', value: 'ongoing'}, {text: '不可签到', value: 'closed'}], render: value => CheckDeskStatus[value] },
     { title: '创建时间', dataIndex: 'createdAt', sorter: true, render: tool.formatDate },
     {
       title: '操作', render: checkDesk =>
@@ -123,7 +122,7 @@ class App extends React.Component {
   }
 
   componentDidMount() {
-    this.queryCheckDesks();
+    this.queryCheckDesks()
   }
 
   handleTableChange = (pagination, filters, sorter) => {
@@ -145,6 +144,9 @@ class App extends React.Component {
   };
 
   queryCheckDesks = async (queryCondition) => {
+    queryCondition = queryCondition || {
+      pageSize: this.state.pagination.pageSize
+    }
     this.setState({ loading: true });
     try {
       let { rows: checkDesks, count } = await request.queryCheckDesks(queryCondition, this.props.history)
@@ -169,7 +171,7 @@ class App extends React.Component {
   render() {
     return (
       <PageHeader
-        title="所有报名表"
+        title="所有签到单"
         extra={[
           <Button key="1" type='primary' onClick={() => this.setState({ showNewCheckDesk: true, newCheckDeskKey: this.newCheckDeskKey++, editingCheckDesk: null })}>新增签到单</Button>,
           // <Button key="2" onClick={() => this.setState({ showNewCheckRecordPanel: true })}>新增签到</Button>

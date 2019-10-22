@@ -18,7 +18,8 @@ class NewEnrollment extends React.Component {
       status: 'confirmed'
     },
     submitting: false,
-    type: 'create'
+    type: 'create',
+    courseOptions: []
   };
 
   constructor(props) {
@@ -34,6 +35,7 @@ class NewEnrollment extends React.Component {
           ...this.state.enrollment,
           ...this.props.enrollment
         },
+        type: this.props.type || this.state.type
       })
     }
   }
@@ -47,12 +49,12 @@ class NewEnrollment extends React.Component {
           values.pricePlanId = values.courseAndPricePlanId[1]
           delete values.courseAndPricePlanId
           let enrollment = null
-          if (this.props.enrollment) {
-            enrollment = await request.updateEnrollment(this.props.enrollment.id, values)
-            message.success('保存报名表成功')
-          } else {
+          if (this.state.type === 'create') {
             enrollment = await request.addEnrollment(values)
             message.success('新建报名表成功')
+          } else {
+            enrollment = await request.updateEnrollment(this.props.enrollment.id, values)
+            message.success('保存报名表成功')
           }
           this.props.onSuccess(enrollment)
         } catch (error) {
@@ -82,6 +84,7 @@ class NewEnrollment extends React.Component {
 
     }
   }
+
   getFieldDecorator = this.props.form.getFieldDecorator;
 
   formItemLayout = {
@@ -96,14 +99,17 @@ class NewEnrollment extends React.Component {
   };
 
   render() {
+    if(this.props.enrollment) {
+      this.props.enrollment.courseAndPricePlanId = [this.props.enrollment.courseId, this.props.enrollment.pricePlanId]
+    }
+    console.log(this.props.enrollment.courseAndPricePlanId)
     const initialEnrollment = {
       ...this.state.enrollment,
       ...this.props.enrollment
     }
-    console.log(initialEnrollment)
     return (
       <Drawer
-        title="新建报名单"
+        title={`${this.state.type==='edit'? '编辑': '新建'}报名单`}
         width={520}
         closable={false}
         onClose={this.props.onClose}
@@ -155,6 +161,7 @@ class NewEnrollment extends React.Component {
           </Form.Item>
           <Form.Item label="课程及方案">
             {this.getFieldDecorator('courseAndPricePlanId', {
+              initialValue: initialEnrollment.courseAndPricePlanId,
               rules: [
                 { type: 'array', required: true, message: '请选择课程及付费方案' },
               ],
@@ -164,7 +171,7 @@ class NewEnrollment extends React.Component {
           </Form.Item>
           <Form.Item label="剩余课时">
             {this.getFieldDecorator('classBalance', {
-              initialValue: this.state.maxClassBalance,
+              initialValue: initialEnrollment.classBalance === undefined? this.state.maxClassBalance : initialEnrollment.classBalance,
               rules: [
                 { required: true, message: '请设置剩余课时' },
                 {

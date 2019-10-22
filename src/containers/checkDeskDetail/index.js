@@ -165,7 +165,7 @@ class App extends React.Component {
                 loading={this.state.loadingCheckRecords}
                 onChange={this.handleCheckRecordsTableChange}
                 size="small"
-                style={{ backgroundColor: 'white', marginTop: '24px' }}
+                style={{ backgroundColor: 'white', padding: '24px' }}
               />
             </TabPane>
             <TabPane tab="作业" key="2">
@@ -177,7 +177,7 @@ class App extends React.Component {
                 loading={this.state.loadingHomeworks}
                 onChange={this.handleCheckRecordsTableChange}
                 size="small"
-                style={{ backgroundColor: 'white', marginTop: '24px' }}
+                style={{ backgroundColor: 'white', padding: '24px' }}
               />
             </TabPane>
           </Tabs>

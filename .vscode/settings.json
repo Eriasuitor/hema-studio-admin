@@ -3,6 +3,7 @@
 		"Cascader",
 		"Dropdown",
 		"Sider",
+		"antd",
 		"autosize",
 		"deepmerge",
 		"reqwest"

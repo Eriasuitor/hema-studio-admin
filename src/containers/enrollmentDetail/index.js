@@ -70,7 +70,10 @@ class App extends React.Component {
 
 
   state = {
-    enrollment: {},
+    enrollment: {
+      user: {},
+      course: {}
+    },
     enrollmentPagination: {
       pageSize: 15,
       showQuickJumper: true,
@@ -177,27 +180,28 @@ class App extends React.Component {
                 loading={this.state.loadingCheckRecords}
                 onChange={this.handleCheckRecordsTableChange}
                 size="small"
-                style={{ backgroundColor: 'white', marginTop: '24px' }}
+                style={{ backgroundColor: 'white', padding: '24px' }}
               />
             </TabPane>
           </Tabs>
         }
       >
         <Descriptions title='报名单信息'>
-          <Descriptions.Item label="ID">{this.state.enrollment.id}</Descriptions.Item>
-          <Descriptions.Item label="用户ID">{this.state.enrollment.user}</Descriptions.Item>
-          <Descriptions.Item label="课程ID">{this.state.enrollment.courseId}</Descriptions.Item>
+          <Descriptions.Item label="单号">{this.state.enrollment.id}</Descriptions.Item>
+          <Descriptions.Item label="学号">{this.state.enrollment.userId}</Descriptions.Item>
+          <Descriptions.Item label="昵称">{this.state.enrollment.user.nickname}</Descriptions.Item>
+          <Descriptions.Item label="课程">{this.state.enrollment.course.name}</Descriptions.Item>
           <Descriptions.Item label="姓名">{this.state.enrollment.name}</Descriptions.Item>
           <Descriptions.Item label="手机号">{this.state.enrollment.phone}</Descriptions.Item>
           <Descriptions.Item label="性别">{tool.resolveGender(this.state.enrollment.gender)}</Descriptions.Item>
-          <Descriptions.Item label="状态">{this.state.enrollment.status}</Descriptions.Item>
+          <Descriptions.Item label="状态">{tool.resolveEnrollmentStatus(this.state.enrollment.status)}</Descriptions.Item>
           <Descriptions.Item label="剩余课时">{this.state.enrollment.classBalance}</Descriptions.Item>
           <Descriptions.Item label="创建时间">{moment(this.state.enrollment.createdAt).format('YYYY-MM-DD HH:mm')}</Descriptions.Item>
         </Descriptions>
         <NewCheckRecord show={this.state.showNewCheckRecord} checkDesk={{ enrollmentId: this.props.match.params.enrollmentId }} onClose={() => this.setState({ showNewCheckRecord: false })} onSuccess={() => {
           this.setState({ showNewCheckRecord: false })
           this.queryCheckRecords()
-        }}></NewCheckRecord>
+        }} />
       </PageHeader>
     );
   }

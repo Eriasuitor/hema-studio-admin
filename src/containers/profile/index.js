@@ -330,7 +330,7 @@ class Profile extends React.Component {
                 style={{ backgroundColor: 'white', padding: '24px' }}
               />
             </TabPane>
-            <TabPane tab="签到表" key="2">
+            <TabPane tab="签到记录" key="2">
               <Table
                 columns={this.checkRecordColumns}
                 rowKey={record => record.id}

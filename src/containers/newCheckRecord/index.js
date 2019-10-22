@@ -104,7 +104,7 @@ class NewCheckRecord extends React.Component {
 
     return (
       <Drawer
-        title="新建签到表"
+        title={`${this.state.type==='edit'? '编辑': '新建'}签到表`}
         width={552}
         closable={false}
         onClose={this.props.onClose}

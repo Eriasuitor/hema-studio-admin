@@ -1,12 +1,7 @@
-import { Menu, Icon, Switch, Table, Input } from 'antd';
-import reqwest from 'reqwest';
+import { Icon, Table, Input } from 'antd';
 import React from 'react';
-import { BrowserRouter as Router, Route, Link } from "react-router-dom";
-import store from '../../reducer/index'
-import { Redirect } from 'react-router'
 import Highlighter from 'react-highlight-words';
-import { unauthorized, login } from '../../reducer/actions'
-import { PageHeader, Tag, Tabs, Button, Statistic, Row, Col, Avatar } from 'antd';
+import { PageHeader, Button, Statistic, Row, Col, Avatar } from 'antd';
 import { getMembers } from '../../request'
 import { withRouter } from 'react-router'
 import NewUser from '../newUser'
@@ -44,19 +39,6 @@ class App extends React.Component {
     filterIcon: filtered => (
       <Icon type="search" style={{ color: filtered ? '#1890ff' : undefined }} />
     ),
-    // onFilter: async (value, record) => {
-    //   console.log('!!!!!!!!!!!!')
-    //   await this.fetch({...this.state.queryCondition, nickname: value})
-    //   console.log(record)
-    //   console.log(value)
-    //   console.log(dataIndex)
-    //   return true
-    //   // return !!record[dataIndex] && record[dataIndex]
-    //   //   .toString()
-    //   //   .toLowerCase()
-    //   //   .includes(value.toLowerCase())
-    // }
-    // ,
     onFilterDropdownVisibleChange: visible => {
       if (visible) {
         setTimeout(() => this.searchInput.select());
@@ -77,7 +59,7 @@ class App extends React.Component {
   state = {
     data: [],
     pagination: {
-      pageSize: 15,
+      pageSize: 10,
       showQuickJumper: true,
       showTotal: (total) => `共${total}条目`,
       total: 0
@@ -103,7 +85,7 @@ class App extends React.Component {
     // { title: '密码', dataIndex: 'password', render: password => <span className="ellipsis w1" title="">{password}</span> },
     // { title: '手机号', sorter: true, dataIndex: 'phone', },
     { title: '地区', render: user => user.country ? `${user.country} ${user.province} ${user.city}` : "", },
-    { title: '语言', dataIndex:'language' },
+    { title: '语言', dataIndex: 'language' },
     { title: '状态', dataIndex: 'status', filters: [{ text: '正常', value: 'normal' }, { text: '不可用', value: 'disable' }], render: status => this.userStatusMap[status] },
     { title: '创建时间', sorter: true, dataIndex: 'createdAt', render: date => moment(date).format('YYYY-MM-DD HH:mm'), },
     {
@@ -150,7 +132,7 @@ class App extends React.Component {
     const pager = { ...this.state.pagination }
     pager.current = pagination.current
     Object.keys(this.queryMapping).forEach(key => {
-      if(!filters[key]) return
+      if (!filters[key]) return
       filters[this.queryMapping[key]] = filters[key]
       delete filters[key]
     })
@@ -214,7 +196,7 @@ class App extends React.Component {
           pagination={this.state.pagination}
           loading={this.state.loading}
           onChange={this.handleTableChange}
-          locale={{filterConfirm: '确定', filterReset: '重置', emptyText: '暂无数据'}}
+          locale={{ filterConfirm: '确定', filterReset: '重置', emptyText: '暂无数据' }}
           //           onRowClick={(userInfo) => this.props.history.push(`/member/${userInfo.id}`)}
           scroll={{ x: 888 }}
           size="small"

@@ -23,18 +23,16 @@ class NewCourse extends React.Component {
     confirmDirty: false,
     autoCompleteResult: [],
     course: {
-      name: 'this is the name',
-      description: 'this is the desc',
-      presents: [{
-        name: 'iPhone X',
-        amount: 0
-      }],
+      name: '',
+      description: '',
+      presents: [],
       classSchedules: [],
-      images: ['https://cdn.pixabay.com/photo/2014/12/15/17/16/pier-569314__340.jpg'],
-      aims: ['add one', 'to be a better man'],
-      for: ['you'],
+      images: [],
+      aims: [],
+      for: [],
       pricePlans: [],
-      supportAudition: false
+      supportAudition: true,
+      status: 'normal'
     },
     statusDescription: '创建',
     mode: 'inline',
@@ -75,7 +73,7 @@ class NewCourse extends React.Component {
   }
 
   componentDidMount() {
-    this.state.course.pricePlans.forEach(_ => _.hitValue = parseFloat(_.hitValue ) * 10)
+    this.state.course.pricePlans.forEach(_ => _.hitValue = parseFloat(_.hitValue) * 10)
     this.setState({ show: this.props.show, course: this.state.course })
   }
 
@@ -120,9 +118,8 @@ class NewCourse extends React.Component {
           this.setState({ statusDescription: '保存课程' })
           values.pricePlans.forEach(pricePlan => pricePlan.hitValue = pricePlan.hitValue / 10)
           let course = null
+          console.log(values)
           if (!this.props.course) {
-            values.status = 'normal'
-            values.supportAudition = true
             course = await request.addCourse(values, this.props.history)
             message.success('创建成功！', 3)
           } else {
@@ -234,22 +231,23 @@ class NewCourse extends React.Component {
                 initialValue: this.state.course.supportAudition,
               })(<Switch disabled />)}
             </Form.Item>
-              <Form.Item label="状态">
-                {getFieldDecorator('status', {
-                  initialValue: this.state.course.status,
-                })(
-                  <Select placeholder="课程状态" style={{ width: '90%' }}>
-                    <Option value="normal">接受报名</Option>
-                    <Option value="disable">不可报名</Option>
-                  </Select>,
-                )}
-              </Form.Item></div> : <Form.Item label="支持试听">
-              {getFieldDecorator('supportAudition', {
-                valuePropName: 'checked',
-                initialValue: this.state.course.supportAudition,
-              })(<Switch />)}
-            </Form.Item>
+            </div> : <Form.Item label="支持试听">
+                {getFieldDecorator('supportAudition', {
+                  valuePropName: 'checked',
+                  initialValue: this.state.course.supportAudition,
+                })(<Switch />)}
+              </Form.Item>
           }
+          <Form.Item label="状态">
+            {getFieldDecorator('status', {
+              initialValue: this.state.course.status,
+            })(
+              <Select placeholder="课程状态" style={{ width: '90%' }}>
+                <Option value="normal">接受报名</Option>
+                <Option value="disable">不可报名</Option>
+              </Select>,
+            )}
+          </Form.Item>
 
           <InputList note={`正式价格 = (原价 - 立减) × 折扣 / 10 `} min={1} initialValue={this.state.course.pricePlans} id="pricePlans" placeholder="方案" mode="numbers" label="价格方案" required={true} form={this.props.form} multipleInputs={[
             { id: 'price', precision: 2, min: 0, placeholder: '原价', prefix: '原价', suffix: '元', width: '44%', rules: [] },
@@ -259,15 +257,17 @@ class NewCourse extends React.Component {
           ]}>
           </InputList>
           <InputList min={1} initialValue={this.state.course.classSchedules} id="classSchedules" placeholder="上课时间" mode="numbers" label="上课时间" note="" required={true} form={this.props.form} multipleInputs={[
-            { id: 'dayOfWeek', type: 'select', options: [
-              { title: '周一', value: '1' },
-              { title: '周二', value: '2' },
-              { title: '周三', value: '3' },
-              { title: '周四', value: '4' },
-              { title: '周五', value: '5' },
-              { title: '周六', value: '6' },
-              { title: '周日', value: '0' },
-            ], min: 0, placeholder: '每', prefix: '每', width: '90%', rules: [] },
+            {
+              id: 'dayOfWeek', type: 'select', options: [
+                { title: '周一', value: '1' },
+                { title: '周二', value: '2' },
+                { title: '周三', value: '3' },
+                { title: '周四', value: '4' },
+                { title: '周五', value: '5' },
+                { title: '周六', value: '6' },
+                { title: '周日', value: '0' },
+              ], min: 0, placeholder: '每', prefix: '每', width: '90%', rules: []
+            },
             { id: 'from', initialValue: '', type: 'date', placeholder: '自', rules: [], prefix: '自', width: '43%' },
             { id: 'to', initialValue: '', type: 'date', placeholder: '到', rules: [], prefix: '到', width: '43%' },
           ]}>
@@ -275,6 +275,7 @@ class NewCourse extends React.Component {
           <InputList initialValue={this.state.course.aims} id="aims" label="课程目标" form={this.props.form} placeholder="课程目标" rules={[{ max: 1024, message: '课程目标最长为1024字' }]}></InputList>
           <InputList initialValue={this.state.course.for} id="for" label="适合对象" form={this.props.form} placeholder="目标用户" rules={[{ max: 1024, message: '目标用户最长为1024字' }]}></InputList>
           <InputList initialValue={this.state.course.presents} id="presents" label="赠品" form={this.props.form} multipleInputs={[{ placeholder: '赠品名称', rules: [{ max: 32, message: '课程目标最长为32字' }] }, { placeholder: '数量', rules: [] }]} initialValue={this.state.course.presents}></InputList>
+
           <div
             style={{
               position: 'absolute',
