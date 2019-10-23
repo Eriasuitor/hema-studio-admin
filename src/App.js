@@ -40,18 +40,6 @@ class App extends React.Component {
     }
   }
 
-  changeMode = value => {
-    this.setState({
-      mode: value ? 'vertical' : 'inline',
-    });
-  };
-
-  changeTheme = value => {
-    this.setState({
-      theme: value ? 'dark' : 'light',
-    });
-  };
-
   routerPath = [
     { url: '/index', title: '总览', key: "1", icon: DashboardIcon },
     { url: '/member', title: '学员', key: "2", icon: UserIcon },
@@ -106,12 +94,12 @@ class App extends React.Component {
           zIndex: 100,
           paddingLeft: 0
         }}>
-          {/* {this.props.history.location.pathname} */}
-          <img alt="" style={{maxHeight: '50px', margin: '0 12px'}} src="https://hema-studio-holder.oss-cn-shenzhen.aliyuncs.com/sys/hema-logo2.png!saver"></img>
+          {/* {} */}
+          <img alt="" style={{ maxHeight: '50px', margin: '0 12px' }} src="https://hema-studio-holder.oss-cn-shenzhen.aliyuncs.com/sys/hema-logo2.png!saver"></img>
           荷玛画室后台管理
         </Header>
         <Layout style={{ marginTop: '58px' }}>
-          <SideBar />
+          {this.props.history.location.pathname === '/login' ? "" : <SideBar />}
           <Layout style={{ marginLeft: 200, padding: '24px 24px 24px' }}>
             <Content style={{ overflow: 'scroll' }}>
               <Switch>
@@ -129,7 +117,7 @@ class App extends React.Component {
             </Content>
           </Layout>
         </Layout>
-          {/* <Footer style={{ */}
+        {/* <Footer style={{ */}
         {/* // position: 'fixed',
             // bottom: 0,
             width: '100%' */}

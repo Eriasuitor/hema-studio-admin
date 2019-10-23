@@ -50,14 +50,11 @@ class Login extends React.Component {
   }
 
   render() {
-    const { getFieldDecorator } = this.props.form;
-    // if (store.getState().token) return (<Redirect to='/index' />)
+    const { getFieldDecorator } = this.props.form
     return (
       <div className='wholeBk'>
         <div className='loginPad'>
           <div className='title'>登录</div>
-          {store.getState().token || 1}
-          {store.getState().redirect.from || 1}
           <Form onSubmit={this.handleSubmit}>
             <Form.Item className='item'>
               {getFieldDecorator('userId', {
@@ -73,7 +70,7 @@ class Login extends React.Component {
                 <Input
                   prefix={<Icon type="user" style={{ color: 'rgba(0,0,0,.25)' }} />}
                   placeholder="账号"
-                />,
+                />
               )}
             </Form.Item>
             <Form.Item className='item'>
@@ -82,8 +79,8 @@ class Login extends React.Component {
               })(
                 <Input.Password
                   prefix={<Icon type="lock" style={{ color: 'rgba(0,0,0,.25)' }} />}
-                  placeholder="码"
-                />,
+                  placeholder="密码"
+                />
               )}
             </Form.Item>
             <Form.Item className='item'>
@@ -94,8 +91,7 @@ class Login extends React.Component {
           </Form>
         </div>
       </div>
-
-    );
+    )
   }
 }
 

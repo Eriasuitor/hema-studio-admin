@@ -259,13 +259,13 @@ class NewCourse extends React.Component {
           <InputList min={1} initialValue={this.state.course.classSchedules} id="classSchedules" placeholder="上课时间" mode="numbers" label="上课时间" note="" required={true} form={this.props.form} multipleInputs={[
             {
               id: 'dayOfWeek', type: 'select', options: [
-                { title: '周一', value: '1' },
-                { title: '周二', value: '2' },
-                { title: '周三', value: '3' },
-                { title: '周四', value: '4' },
-                { title: '周五', value: '5' },
-                { title: '周六', value: '6' },
-                { title: '周日', value: '0' },
+                { title: '周一', value: 1 },
+                { title: '周二', value: 2 },
+                { title: '周三', value: 3 },
+                { title: '周四', value: 4 },
+                { title: '周五', value: 5 },
+                { title: '周六', value: 6 },
+                { title: '周日', value: 0 },
               ], min: 0, placeholder: '每', prefix: '每', width: '90%', rules: []
             },
             { id: 'from', initialValue: '', type: 'date', placeholder: '自', rules: [], prefix: '自', width: '43%' },
