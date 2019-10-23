@@ -62,13 +62,10 @@ class NewCheckRecord extends React.Component {
   userId = null
 
   async handleUserIdChange(e) {
-    console.log('???')
-    console.log(e.target.value)
     this.userId = e.target.value
   }
 
   async handleCourseChange(courseId) {
-    console.log('????')
     try {
       let [enrollmentsResult, checkDesksResult] = await Promise.all([
         request.queryEnrollments({ userId: this.userId, courseId, status: 'confirmed' }, this.props.history),
@@ -86,6 +83,15 @@ class NewCheckRecord extends React.Component {
 
   componentDidMount() {
     this.queryCourses()
+    if (this.props.checkRecord) {
+      this.userId = this.props.checkRecord.userId
+      this.setState({
+        checkRecord: {
+          ...this.state.checkRecord,
+          ...this.props.checkRecord
+        }
+      })
+    }
   }
 
   render() {
@@ -104,7 +110,7 @@ class NewCheckRecord extends React.Component {
 
     return (
       <Drawer
-        title={`${this.state.type==='edit'? '编辑': '新建'}签到表`}
+        title={`${this.state.type === 'edit' ? '编辑' : '新建'}签到表`}
         width={552}
         closable={false}
         onClose={this.props.onClose}
@@ -119,7 +125,7 @@ class NewCheckRecord extends React.Component {
                 { type: 'number', min: 1000, max: 9999, message: '学号为4为数字' },
               ],
               getValueFromEvent: formatToInteger()
-            })(<Input 
+            })(<Input
               onChange={this.handleUserIdChange.bind(this)}
             />)}
           </Form.Item>
@@ -141,7 +147,7 @@ class NewCheckRecord extends React.Component {
               rules: [
                 { required: true, message: '请选择报名单' },
               ]
-            })(<Select>{
+            })(<Select >{
               this.state.enrollments.map(enrollment => (
                 <Option key={enrollment.id} value={enrollment.id}>{enrollment.name}(余{enrollment.classBalance}课时)</Option>
               ))}</Select>)}

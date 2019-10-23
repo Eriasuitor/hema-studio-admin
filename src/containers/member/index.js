@@ -80,7 +80,7 @@ class App extends React.Component {
   columns = [
     { title: '', dataIndex: 'avatar', render: value => <Avatar src={value} style={{ backgroundColor: '#87d068' }} icon="user" />, },
     { title: '学号', dataIndex: 'id', sorter: true, render: id => <a onClick={() => this.props.history.push(`/member/${id}`)}>{id}</a>, },
-    { title: '姓名', key: 'nickname', dataIndex: 'nickname', ...this.getColumnSearchProps('nickname', '昵称'), },
+    { title: '昵称', key: 'nickname', dataIndex: 'nickname', ...this.getColumnSearchProps('nickname', '昵称'), },
     { title: '性别', filters: [{ text: '男', value: 'male' }, { text: '女', value: 'female' }], dataIndex: 'gender', render: gender => gender ? gender === 'male' ? '男' : '女' : '未知', },
     // { title: '密码', dataIndex: 'password', render: password => <span className="ellipsis w1" title="">{password}</span> },
     // { title: '手机号', sorter: true, dataIndex: 'phone', },
@@ -128,7 +128,6 @@ class App extends React.Component {
   }
 
   handleTableChange = (pagination, filters, sorter) => {
-    console.log(filters)
     const pager = { ...this.state.pagination }
     pager.current = pagination.current
     Object.keys(this.queryMapping).forEach(key => {

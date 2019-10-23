@@ -4,12 +4,16 @@ import { BrowserRouter as Router, Route, Link } from "react-router-dom";
 import store from '../../reducer/index'
 import { Redirect } from 'react-router'
 import {unauthorized} from '../../reducer/actions'
-import Member from '../member'
+import * as request from '../../request'
 
 class Homepage extends React.Component {
   state = {
-    mode: 'inline',
-    theme: 'light',
+    counter: {
+      userCount: undefined,
+      courseCount: undefined,
+      enrollmentCount: undefined,
+      checkingDeskCount: undefined
+    }
   };
 
   changeMode = value => {
@@ -22,7 +26,14 @@ class Homepage extends React.Component {
     this.setState({
       theme: value ? 'dark' : 'light',
     });
-  };
+  }
+
+  async componentDidMount() {
+    const counter = await request.getBusinessStatistics(this.props.history)
+    this.setState({
+      counter
+    })
+  }
 
   render() {
     if(!store.getState().token) {

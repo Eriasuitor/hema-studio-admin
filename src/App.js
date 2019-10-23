@@ -1,4 +1,4 @@
-import { Menu, Icon, Col, Row, Layout } from 'antd';
+import { Menu, Icon, Col, Row, Layout, Avatar } from 'antd';
 import React from 'react';
 import { BrowserRouter as Router, Route, Switch } from "react-router-dom";
 import Homepage from './containers/homepage';
@@ -103,10 +103,12 @@ class App extends React.Component {
           position: "fixed",
           alignItems: 'center',
           width: '100%',
-          zIndex: 100
+          zIndex: 100,
+          paddingLeft: 0
         }}>
-          {this.props.history.location.pathname}
-          {/* {JSON.stringify(this.routerPath.find(rp => this.props.history.location.pathname.startsWith(rp.url)).key)} */}
+          {/* {this.props.history.location.pathname} */}
+          <img alt="" style={{maxHeight: '50px', margin: '0 12px'}} src="https://hema-studio-holder.oss-cn-shenzhen.aliyuncs.com/sys/hema-logo2.png!saver"></img>
+          荷玛画室后台管理
         </Header>
         <Layout style={{ marginTop: '58px' }}>
           <SideBar />

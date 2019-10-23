@@ -1,17 +1,14 @@
-import { Menu, Icon, Switch, Table, Input, Descriptions } from 'antd';
-import reqwest from 'reqwest';
+import { Icon, Table, Input, Descriptions } from 'antd';
 import React from 'react';
 import store from '../../reducer/index'
 import Highlighter from 'react-highlight-words';
-import { unauthorized, login } from '../../reducer/actions'
-import { PageHeader, Tag, Tabs, Button, Statistic, Row, Col } from 'antd';
+import { login } from '../../reducer/actions'
+import { PageHeader, Tabs, Button } from 'antd';
 import { withRouter } from 'react-router'
 import NewCheckRecord from '../newCheckRecord'
 import * as moment from 'moment'
 import * as request from '../../request'
-import { EnrollmentStatus } from '../../common'
 import * as tool from '../../util'
-import { from } from 'rxjs';
 
 const { TabPane } = Tabs;
 
@@ -96,10 +93,10 @@ class App extends React.Component {
   };
 
   checkRecordColumns = [
-    {title: 'ID', dataIndex: 'id', sorter: true, width: '5%'},
-    {title: '签到单ID', dataIndex: 'checkDeskId', sorter: true, width: '5%'},
-    {title: '课程ID', dataIndex: 'courseId', sorter: true, width: '5%', render: id => <a onClick={() => this.props.history.push(`/courses/${id}`)}>{id}</a>},
-    {title: '用户ID', dataIndex: 'userId', sorter: true, width: '5%', render: id => <a onClick={() => this.props.history.push(`/member/${id}`)}>{id}</a>},
+    { title: 'ID', dataIndex: 'id', sorter: true, width: '5%' },
+    { title: '签到单ID', dataIndex: 'checkDeskId', sorter: true, width: '5%' },
+    { title: '课程ID', dataIndex: 'courseId', sorter: true, width: '5%', render: id => <a onClick={() => this.props.history.push(`/courses/${id}`)}>{id}</a> },
+    { title: '用户ID', dataIndex: 'userId', sorter: true, width: '5%', render: id => <a onClick={() => this.props.history.push(`/member/${id}`)}>{id}</a> },
   ];
 
   enrollmentStatusMap = {

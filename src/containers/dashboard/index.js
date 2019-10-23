@@ -1,47 +1,53 @@
-import { Menu, Icon, Card } from 'antd';
+import { Card, Spin } from 'antd';
 import React from 'react';
 import { Redirect, withRouter } from 'react-router'
-import { unauthorized } from '../../reducer/actions'
-import { Statistic, Row, Col } from 'antd';
+import { Statistic, Row, Col } from 'antd'
+import * as request from '../../request'
 
 class Member extends React.Component {
   state = {
-    mode: 'inline',
-    theme: 'light',
-  };
+    loading: true,
+    counter: {},
+    statistics: [
+      { title: '学员', key: "userCount", suffix: '人', redirect: '/member' },
+      { title: '课程', key: "courseCount", suffix: '门', redirect: '/courses' },
+      { title: '报名', key: "enrollmentCount", suffix: '单', redirect: '/enrollments' },
+      { title: '正在签到', key: "checkingDeskCount", suffix: '个', redirect: '/check-desks' },
+    ]
+  }
 
-  statistics = [
-    { title: '学员', value: 1012, suffix: '人', redirect: '/member' },
-    { title: '课程', value: 10, suffix: '门' },
-    { title: '待批改', value: 300, suffix: '份' },
-    { title: '新报名', value: 456 },
-  ]
+  async componentDidMount() {
+    try {
+      const counter = await request.getBusinessStatistics(this.props.history)
+      this.setState({
+        counter
+      })
+    } catch (error) {
 
-  changeMode = value => {
-    this.setState({
-      mode: value ? 'vertical' : 'inline',
-    });
-  };
-
-  changeTheme = value => {
-    this.setState({
-      theme: value ? 'dark' : 'light',
-    });
-  };
+    } finally {
+      this.setState({
+        loading: false
+      })
+    }
+  }
 
   render() {
-    const A = withRouter(({history}) => (
-      <Row gutter={16}>
-        {this.statistics.map(card => (
+    const A = withRouter(({ history }) => (
+      <Row gutter={16} >
+        {this.state.statistics.map(card => (
           <Col span={6}>
             <Card onClick={() => history.push(card.redirect)}>
               <Statistic
                 title={card.title}
-                value={card.value}
+                value={this.state.loading ? " " : this.state.counter[card.key]}
                 precision={0}
                 valueStyle={{ color: '#cf1322' }}
-                suffix={card.suffix}
+                suffix={this.state.loading ? "" : card.suffix}
               />
+              {
+                this.state.loading &&
+                <Spin style={{ position: "relative" }} />
+              }
             </Card>
           </Col>
         ))}
@@ -49,8 +55,8 @@ class Member extends React.Component {
     ))
     return (
       <div>
-      <A></A>
-    </div>
+        <A></A>
+      </div>
     )
   }
 }

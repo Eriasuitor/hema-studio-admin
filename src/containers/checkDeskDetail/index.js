@@ -36,7 +36,10 @@ class App extends React.Component {
       total: 0
     },
     showNewHomework: false,
-    checkDesk: {},
+    checkDesk: {
+      course: {},
+      user: {}
+    },
     loadingCheckRecords: false,
     loadingHomeworks: false,
     queryCondition: {},
@@ -47,9 +50,9 @@ class App extends React.Component {
   checkRecordColumns = [
     { title: 'ID', dataIndex: 'id', sorter: true },
     { title: '签到单ID', dataIndex: 'checkDeskId', sorter: true },
-    { title: '课程ID', dataIndex: 'courseId', sorter: true, render: id => <a onClick={() => this.props.history.push(`/courses/${id}`)}>{id}</a> },
     { title: '报名单ID', dataIndex: 'enrollmentId', sorter: true, render: id => <a onClick={() => this.props.history.push(`/enrollments/${id}`)}>{id}</a> },
     { title: '用户ID', dataIndex: 'userId', sorter: true, render: id => <a onClick={() => this.props.history.push(`/member/${id}`)}>{id}</a> },
+    { title: '用户', dataIndex: 'user.nickname', render: id => <a onClick={() => this.props.history.push(`/member/${id}`)}>{id}</a> },
   ]
 
   homeworkColumns = [
@@ -98,7 +101,7 @@ class App extends React.Component {
     } catch (error) {
 
     }
-  };
+  }
 
   queryCheckRecords = async (queryCondition) => {
     this.setState({ loadingCheckRecords: true })
@@ -117,7 +120,7 @@ class App extends React.Component {
     }
   }
 
-  queryHomeworks = async (queryCondition) => {
+  queryHomeworks = async (queryCondition = {}) => {
     this.setState({ loadingHomeworks: true })
     try {
       queryCondition.checkDeskId = this.props.match.params.checkDeskId
@@ -186,7 +189,7 @@ class App extends React.Component {
         <Descriptions title='签到单信息'>
           <Descriptions.Item label="ID">{this.state.checkDesk.id}</Descriptions.Item>
           <Descriptions.Item label="用户ID">{this.state.checkDesk.userId}</Descriptions.Item>
-          <Descriptions.Item label="课程ID">{this.state.checkDesk.courseId}</Descriptions.Item>
+          <Descriptions.Item label="课程">{this.state.checkDesk.course.name}</Descriptions.Item>
           <Descriptions.Item label="序号">{this.state.checkDesk.order}</Descriptions.Item>
           <Descriptions.Item label="地点">{this.state.checkDesk.address}</Descriptions.Item>
           <Descriptions.Item label="创建时间">{tool.formatDate(this.state.checkDesk.createdAt)}</Descriptions.Item>
@@ -204,6 +207,7 @@ class App extends React.Component {
           onClose={() => this.setState({ showNewHomework: false })}
           onSuccess={() => {
             this.setState({ showNewHomework: false })
+            this.queryHomeworks()
           }}
           homework={{ checkDeskId: this.props.match.params.checkDeskId }}
         ></NewHomework>

@@ -205,7 +205,7 @@ class App extends React.Component {
           }}
         />
       </PageHeader>
-    );
+    )
   }
 }
 

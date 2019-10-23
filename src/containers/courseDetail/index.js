@@ -119,7 +119,6 @@ class App extends React.Component {
       title: '姓名',
       sorter: true,
       dataIndex: 'name',
-      render: supportAudition => supportAudition ? '是' : '否',
     },
     {
       title: '性别',
@@ -302,10 +301,10 @@ class App extends React.Component {
       >
         <Descriptions title='账户信息'>
           <Descriptions.Item label="赠品">{this.state.course.presents.map((present, index) => `${index + 1}: ${present.name} * ${present.amount}`).join('</br>')}</Descriptions.Item>
-          <Descriptions.Item label="目标">{this.state.course.aims.map((aim, index) => `${index + 1}: ${aim}`).join('</br>')}</Descriptions.Item>
-          <Descriptions.Item label="适合人群">{this.state.course.for.map((_for, index) => `${index + 1}: ${_for}`).join('</br>')}</Descriptions.Item>
+          <Descriptions.Item label="目标">{this.state.course.aims.map((aim, index) => `${index + 1}: ${aim}`).join('\n')}</Descriptions.Item>
+          <Descriptions.Item label="适合人群">{this.state.course.for.map((_for, index) => `${index + 1}: ${_for}`).join('\n')}</Descriptions.Item>
           <Descriptions.Item label="支持试听">{this.state.course.supportAudition || '未知'}</Descriptions.Item>
-          <Descriptions.Item label="报名方案">{this.state.course.pricePlans.map((pricePlan, index) => `${index + 1}: ${pricePlan.price} / ${pricePlan.discountedPrice} / ${pricePlan.class} / ${pricePlan.knockValue} / ${pricePlan.hitValue}`).join('</br>')}</Descriptions.Item>
+          <Descriptions.Item label="报名方案">{this.state.course.pricePlans.map((pricePlan, index) => `${index + 1}: ${pricePlan.price} / ${pricePlan.discountedPrice} / ${pricePlan.class} / ${pricePlan.knockValue} / ${pricePlan.hitValue}`).join('\n')}</Descriptions.Item>
           <Descriptions.Item label="状态">{this.statusMapping[this.state.course.status]}</Descriptions.Item>
           <Descriptions.Item label="创建时间">{moment(this.state.course.createdAt).format('YYYY-MM-DD HH:mm')}</Descriptions.Item>
           <Descriptions.Item label="描述">{this.state.course.description}</Descriptions.Item>

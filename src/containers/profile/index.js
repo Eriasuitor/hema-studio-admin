@@ -7,7 +7,7 @@ import NewCheckRecord from '../newCheckRecord'
 import NewEnrollment from '../newEnrollment'
 import { EnrollmentStatus } from '../../common'
 
-import { PageHeader, Tabs, Button, Table, Icon, Descriptions, Form, Select, message, } from 'antd';
+import { PageHeader, Tabs, Button, Table, Icon, Descriptions, Form, Input, message, Avatar } from 'antd';
 import { withRouter } from 'react-router'
 import * as moment from 'moment'
 import * as request from '../../request'
@@ -24,67 +24,87 @@ class Profile extends React.Component {
     userInfo: {},
     enrollments: [],
     pagination: {
-      pageSize: 10
+      pageSize: 7
     },
     checkRecordPagination: {
       pageSize: 10
     },
     loading: false,
     checkRecordLoading: false
-  };
+  }
+
+  getColumnSearchProps = (dataIndex, title) => ({
+    filterDropdown: ({ setSelectedKeys, selectedKeys, confirm, clearFilters }) => (
+      <div style={{ padding: 8 }}>
+        <Input
+          ref={node => {
+            this.searchInput = node;
+          }}
+          placeholder={`检索${title}`}
+          value={selectedKeys[0]}
+          onChange={e => setSelectedKeys(e.target.value ? [e.target.value] : [])}
+          onPressEnter={() => {
+            confirm()
+            this.setState({ searchText: selectedKeys[0] })
+          }}
+          style={{ width: 188, marginBottom: 8, display: 'block' }}
+        />
+        <Button
+          type="primary"
+          onClick={() => {
+            confirm()
+            this.setState({ searchText: selectedKeys[0] })
+          }}
+          icon="search"
+          size="small"
+          style={{ width: 90, marginRight: 8 }}
+        >
+          搜索
+        </Button>
+        <Button onClick={() => {
+          clearFilters();
+          this.setState({ searchText: undefined });
+        }} size="small" style={{ width: 90 }}>
+          清空
+        </Button>
+      </div>
+    ),
+    filterIcon: filtered => (
+      <Icon type="search" style={{ color: filtered ? '#1890ff' : undefined }} />
+    ),
+    onFilterDropdownVisibleChange: visible => {
+      if (visible) {
+        setTimeout(() => this.searchInput.select());
+      }
+    },
+  })
+
+  enrollmentStatusMap = {
+    created: '待支付',
+    paid: '待确认',
+    confirmed: '已确认',
+    expired: '已过期'
+  }
 
   columns = [
+    { title: '单号', dataIndex: 'id', sorter: true, render: id => <a onClick={() => this.props.history.push(`/enrollments/${id}`)}>{id}</a> },
+    { title: '', dataIndex: 'user.avatar', render: value => <Avatar src={value} style={{ backgroundColor: '#87d068' }} icon="user" />, },
+    { title: '学号', dataIndex: 'userId', sorter: true, render: id => <a onClick={() => this.props.history.push(`/member/${id}`)}>{id}</a> },
+    { title: '昵称', dataIndex: 'user', key: 'user.nicknameMatch', render: user => <a onClick={() => this.props.history.push(`/member/${user.id}`)}>{user.nickname}</a> },
+    { title: '姓名', dataIndex: 'name', key: 'enrollment.nameMatch', },
+    { title: '手机号', dataIndex: 'phone', key: 'enrollment.phoneMatch', },
+    { title: '性别', dataIndex: 'gender', render: value => value === 'male' ? '男' : '女' },
+    { title: '课程', dataIndex: 'course', key: 'course.nameMatch', render: course => <a onClick={() => this.props.history.push(`/courses/${course.id}`)}>{course.name}</a> },
+    { title: '剩余课时', dataIndex: 'classBalance', sorter: true },
+    { title: '总课时', dataIndex: 'pricePlan.class' },
+    { title: '价格', dataIndex: 'pricePlan.discountedPrice', render: value => `¥${value}` },
     {
-      title: '单号',
-      dataIndex: 'id',
-      sorter: true,
+      title: '状态', dataIndex: 'status', filters: Object.keys(this.enrollmentStatusMap).map(value => ({
+        text: this.enrollmentStatusMap[value],
+        value
+      })), render: value => this.enrollmentStatusMap[value]
     },
-    {
-      title: '姓名',
-      sorter: true,
-      dataIndex: 'name',
-    },
-    {
-      title: '性别',
-      sorter: true,
-      dataIndex: 'gender',
-    },
-    {
-      title: '手机号',
-      sorter: true,
-      dataIndex: 'phone',
-    },
-    {
-      title: '课程',
-      dataIndex: 'course.name',
-      render: name => <span className='ellipsis w2'>{name}</span>
-    },
-    {
-      title: '价格',
-      // sorter: true,
-      dataIndex: 'pricePlan.discountedPrice',
-    },
-    {
-      title: '剩余课时',
-      key: 'classBalance',
-      render: value => `${value.classBalance}/${value.pricePlan.class}`
-    },
-    {
-      title: '创建时间',
-      sorter: true,
-      dataIndex: 'createdAt',
-      render: date => moment(date).format('YYYY-MM-DD HH:mm'),
-    },
-    {
-      title: '状态',
-      sorter: true,
-      dataIndex: 'status',
-      render: status => EnrollmentStatus[status],
-    },
-    {
-      title: '操作',
-      render: enrollment => (<span><Icon type="stop" theme="twoTone" twoToneColor="red" title='标记为过期' /> {enrollment.status === 'paid' && <Icon theme="twoTone" type="check-circle" onClick={this.confirmEnrollment.bind(this, enrollment.id)} title='确认付款' />} </span>),
-    }
+    { title: '创建时间', dataIndex: 'createdAt', render: value => moment(value).format('YYYY-MM-DD HH-mm') },
   ];
 
   checkRecordColumns = [
@@ -113,7 +133,7 @@ class Profile extends React.Component {
       dataIndex: 'createdAt',
       render: date => moment(date).format('YYYY-MM-DD HH:mm'),
     },
-  ];
+  ]
 
   constructor(props) {
     super(props)
@@ -179,10 +199,6 @@ class Profile extends React.Component {
     this.getProfile()
     this.queryEnrollments()
     this.queryCheckRecords()
-  }
-
-  async confirmEnrollment(enrollmentId) {
-    console.log(enrollmentId)
   }
 
   async getProfile() {
@@ -268,43 +284,9 @@ class Profile extends React.Component {
       orderBy: sorter.field,
       isDesc: sorter.order === 'descend' ? true : false,
     }, this.props.history);
-  };
-
-  changeMode = value => {
-    this.setState({
-      mode: value ? 'vertical' : 'inline',
-    });
-  };
-
-  changeTheme = value => {
-    this.setState({
-      theme: value ? 'dark' : 'light',
-    });
-  };
+  }
 
   render() {
-    const formItemLayout = {
-      labelCol: {
-        xs: { span: 20 },
-        sm: { span: 5 },
-      },
-      wrapperCol: {
-        xs: { span: 24 },
-        sm: { span: 16 },
-      },
-    };
-    const tailFormItemLayout = {
-      wrapperCol: {
-        xs: {
-          span: 24,
-          offset: 0,
-        },
-        sm: {
-          span: 16,
-          offset: 8,
-        },
-      },
-    };
     const { TabPane } = Tabs;
     return (
       <PageHeader
@@ -357,7 +339,7 @@ class Profile extends React.Component {
         </Descriptions>
 
         <NewCheckRecord
-          userInfo={this.state.userInfo}
+          checkRecord={{ userId: parseInt(this.props.match.params.userId) }}
           show={this.state.showNewCheckRecord}
           onClose={() => this.setState({ showNewCheckRecord: false })}
           onSuccess={() => {

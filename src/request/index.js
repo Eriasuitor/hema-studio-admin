@@ -51,6 +51,7 @@ export function handleError(err) {
 }
 
 export async function get(url, query = {}, history, statusHandler) {
+	console.log(query)
 	Object.keys(query).forEach(key => (query[key] === undefined || query[key].length === 0) && delete query[key])
 	let body = await fetch(`${config.host}${url}?${Object.keys(query).map(key => {
 		if( Array.isArray(query[key])) {
@@ -196,4 +197,8 @@ export async function addHomework(checkDeskId, data, history, statusHandler) {
 
 export async function queryHomeworks( query, history, statusHandler) {
 	return get('/homeworks', query, history, statusHandler)
+}
+
+export async function getBusinessStatistics(history, statusHandler) {
+	return get('/systems/business/statistics', undefined, history, statusHandler)
 }
