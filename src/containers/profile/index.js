@@ -82,7 +82,7 @@ class Profile extends React.Component {
   enrollmentStatusMap = {
     created: '待支付',
     paid: '待确认',
-    confirmed: '已确认',
+    confirmed: '已生效',
     expired: '已过期'
   }
 

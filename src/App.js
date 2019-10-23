@@ -129,14 +129,13 @@ class App extends React.Component {
             </Content>
           </Layout>
         </Layout>
-        asdasasdasdasdasdasdasdasdasdasdasdasdasdd
           {/* <Footer style={{ */}
         {/* // position: 'fixed',
             // bottom: 0,
             width: '100%' */}
         {/* }}>FooterFooterFooterFooterFooterFooterFooterFooterFooterFooterFooterFooter</Footer> */}
       </Layout>
-    );
+    )
   }
 }
 
