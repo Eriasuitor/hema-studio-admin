@@ -1,4 +1,4 @@
-import { Menu, Icon, Col, Row, Layout, Avatar } from 'antd';
+import { Menu, Icon, Col, Row, Layout, Badge } from 'antd';
 import React from 'react';
 import { BrowserRouter as Router, Route, Switch } from "react-router-dom";
 import Homepage from './containers/homepage';
@@ -21,7 +21,8 @@ import DashboardIcon from './Icons/Dashboard';
 import BookIcon from './Icons/Book';
 import EnrollmentIcon from './Icons/Enrollment';
 import CheckInIcon from './Icons/CheckIn';
-import UserIcon from './Icons/Users';
+import UserIcon from './Icons/Users'
+import config from './config/index'
 
 const { Header, Footer, Sider, Content } = Layout;
 
@@ -96,7 +97,7 @@ class App extends React.Component {
         }}>
           {/* {} */}
           <img alt="" style={{ maxHeight: '50px', margin: '0 12px' }} src="https://hema-studio-holder.oss-cn-shenzhen.aliyuncs.com/sys/hema-logo2.png!saver"></img>
-          荷玛画室后台管理
+          荷玛画室后台管理 <Badge style={{ backgroundColor: '#52c41a' }} count={config.desc} />
         </Header>
         <Layout style={{ marginTop: '58px' }}>
           {this.props.history.location.pathname === '/login' ? "" : <SideBar />}

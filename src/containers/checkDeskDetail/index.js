@@ -1,10 +1,10 @@
-import { Menu, Icon, Switch, Table, Input, Descriptions } from 'antd';
+import { Menu, Icon, Switch, Table, Input, Descriptions, message } from 'antd';
 import reqwest from 'reqwest';
 import React from 'react';
 import store from '../../reducer/index'
 import Highlighter from 'react-highlight-words';
 import { unauthorized, login } from '../../reducer/actions'
-import { PageHeader, Tag, Tabs, Button, Statistic, Row, Col } from 'antd';
+import { PageHeader, Tag, Tabs, Button, Modal, Row, Spin } from 'antd';
 import { withRouter } from 'react-router'
 import NewCheckRecord from '../newCheckRecord'
 import NewHomework from '../newHomework'
@@ -42,6 +42,7 @@ class App extends React.Component {
     },
     loadingCheckRecords: false,
     loadingHomeworks: false,
+    loadingQR: false,
     queryCondition: {},
     checkRecords: [],
     homeworks: []
@@ -141,21 +142,51 @@ class App extends React.Component {
   handleSearch = (selectedKeys, confirm) => {
     confirm();
     this.setState({ searchText: selectedKeys[0] });
-  };
+  }
 
   handleReset = clearFilters => {
     clearFilters();
     this.setState({ searchText: undefined });
-  };
+  }
+
+  async showQR() {
+    try {
+      this.setState({
+        loadingQR: true
+      })
+      let qrUrl = null
+      if(!this.state.qrUrl) {
+        const qr = await request.getCheckDeskQr(this.props.match.params.checkDeskId)
+        const qrBlob = await new Response(qr).blob()
+        qrUrl =  URL.createObjectURL(qrBlob)
+        this.setState({ qrUrl })
+      }
+      Modal.info({
+        title: `“${this.state.checkDesk.course.name}”第${this.state.checkDesk.order}次签到`,
+        content: (
+          <img style={{height: '100%', width: '100%', marginLeft: '-22px'}} alt="出错了好像" src={qrUrl || this.state.qrUrl} ></img >
+        ),
+        onOk() { },
+      })
+    } catch (error) {
+      console.log(error)
+    } finally {
+      this.setState({
+        loadingQR: false
+      })
+    }
+  }
 
   render() {
     return (
+      <Spin spinning={this.state.loadingQR}>
       <PageHeader
         onBack={() => this.props.history.goBack()}
         title={this.state.checkDesk.name}
         extra={[
-          <Button key="1" type='primary' onClick={() => this.setState({ showNewHomework: true })}>布置作业</Button>,
-          <Button key="2" onClick={() => this.setState({ showNewCheckRecord: true })}>添加签到记录</Button>
+          <Button key="3" type="primary" onClick={this.showQR.bind(this)}>显示签到二维码</Button>,
+          <Button key="1" onClick={() => this.setState({ showNewHomework: true })}>布置作业</Button>,
+          <Button key="2" type="primary" onClick={() => this.setState({ showNewCheckRecord: true })}>添加签到记录</Button>,
         ]}
         footer={
           <Tabs defaultActiveKey="1">
@@ -212,6 +243,7 @@ class App extends React.Component {
           homework={{ checkDeskId: this.props.match.params.checkDeskId }}
         ></NewHomework>
       </PageHeader>
+      </Spin>
     );
   }
 }

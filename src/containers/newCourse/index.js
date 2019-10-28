@@ -256,7 +256,7 @@ class NewCourse extends React.Component {
             { id: 'hitValue', precision: 1, min: 0, max: 10, initialValue: 10, placeholder: '折扣', rules: [], prefix: '折扣', suffix: '折', width: '44%' },
           ]}>
           </InputList>
-          <InputList min={1} initialValue={this.state.course.classSchedules} id="classSchedules" placeholder="上课时间" mode="numbers" label="上课时间" note="" required={true} form={this.props.form} multipleInputs={[
+          <InputList note='时间格式为:12:00:00(时:分:秒)' min={1} initialValue={this.state.course.classSchedules} id="classSchedules" placeholder="上课时间" mode="numbers" label="上课时间" required={true} form={this.props.form} multipleInputs={[
             {
               id: 'dayOfWeek', type: 'select', options: [
                 { title: '周一', value: 1 },
@@ -268,8 +268,8 @@ class NewCourse extends React.Component {
                 { title: '周日', value: 0 },
               ], min: 0, placeholder: '每', prefix: '每', width: '90%', rules: []
             },
-            { id: 'from', initialValue: '', type: 'date', placeholder: '自', rules: [], prefix: '自', width: '43%' },
-            { id: 'to', initialValue: '', type: 'date', placeholder: '到', rules: [], prefix: '到', width: '43%' },
+            { id: 'from', initialValue: '', type: 'date', placeholder: '09:00:00', rules: [], prefix: '自', width: '43%' },
+            { id: 'to', initialValue: '', type: 'date', placeholder: '17:00:00', rules: [], prefix: '到', width: '43%' },
           ]}>
           </InputList>
           <InputList initialValue={this.state.course.aims} id="aims" label="课程目标" form={this.props.form} placeholder="课程目标" rules={[{ max: 1024, message: '课程目标最长为1024字' }]}></InputList>

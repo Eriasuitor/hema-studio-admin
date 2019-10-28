@@ -36,12 +36,15 @@ export function responseNot2StatusHandle(res, history, statusHandler = {}) {
 	}
 }
 
-export function responseStatusHandle(res, history, statusHandler = {}) {
+export function responseStatusHandle(res, history, statusHandler = {}, isJSON = true) {
 	responseNot2StatusHandle(res, history, statusHandler)
 	if ([204, 205].includes(res.status)) {
 		return null
 	}
-	return res.json()
+	if(isJSON) {
+		return res.json()
+	}
+	return res.body
 }
 
 export function handleError(err) {
@@ -50,8 +53,7 @@ export function handleError(err) {
 	throw err
 }
 
-export async function get(url, query = {}, history, statusHandler) {
-	console.log(query)
+export async function get(url, query = {}, history, statusHandler, isJSON = true) {
 	Object.keys(query).forEach(key => (query[key] === undefined || query[key].length === 0) && delete query[key])
 	let body = await fetch(`${config.host}${url}?${Object.keys(query).map(key => {
 		if( Array.isArray(query[key])) {
@@ -63,7 +65,7 @@ export async function get(url, query = {}, history, statusHandler) {
 		headers: {
 			Authorization: `Bearer ${store.getState().token}`
 		}
-	}).then(res => responseStatusHandle(res, history, statusHandler)).catch(handleError)
+	}).then(res => responseStatusHandle(res, history, statusHandler, isJSON)).catch(handleError)
 	return body
 }
 
@@ -200,5 +202,9 @@ export async function queryHomeworks( query, history, statusHandler) {
 }
 
 export async function getBusinessStatistics(history, statusHandler) {
-	return get('/systems/business/statistics', undefined, history, statusHandler)
+	return get('/system/business/statistics', undefined, history, statusHandler)
+}
+
+export async function getCheckDeskQr(checkDeskId, history, statusHandler) {
+	return get(`/check-records/${checkDeskId}/qr`, undefined, history, statusHandler, false)
 }

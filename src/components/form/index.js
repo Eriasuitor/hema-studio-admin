@@ -68,7 +68,7 @@ class InputList extends React.Component {
 		</Select>,
 		'date': 
 		input =>
-		 <Input addonBefore={input.prefix || null}  style={{width: '100%'}}></Input>
+		 <Input addonBefore={input.prefix || null}  style={{width: '100%'}} placeholder={input.placeholder || null}></Input>
 		// <TimePicker suffixIcon={<span></span>} allowClear={false} format={input.format} placeholder={input.placeholder} style={{width: '100%'}}/>
 	}
 
