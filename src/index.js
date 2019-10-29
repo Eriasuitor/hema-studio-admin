@@ -5,8 +5,20 @@ import App from './App';
 import * as serviceWorker from './serviceWorker';
 import './reducer'
 import { BrowserRouter as Router, Route, Link, Switch } from "react-router-dom";
+import { LocaleProvider } from 'antd';
+import zhCN from 'antd/es/locale-provider/zh_CN'
+import 'moment/locale/zh-cn'
+import moment from 'moment'
 
-ReactDOM.render(<Router><App /></Router>, document.getElementById('root'));
+moment.locale('zh-cn')
+
+ReactDOM.render(
+	<Router>
+		<LocaleProvider locale={zhCN}>
+			<App />
+		</LocaleProvider>
+	</Router>,
+	document.getElementById('root'));
 
 // If you want your app to work offline and load faster, you can change
 // unregister() to register() below. Note this comes with some pitfalls.

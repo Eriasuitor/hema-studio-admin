@@ -7,7 +7,7 @@ const configLocal = require('./config_local')
 const merge = require('deepmerge')
 const NodeEnv = {Prod: 'prod', Test: 'test', Dev: 'dev', Local: 'local', Audit: 'audit'}
 
-const env = NodeEnv.Audit
+const env = NodeEnv.Local
 
 const diffEnvAction = {
   [NodeEnv.Local]: configLocal,

@@ -93,6 +93,18 @@ export async function post(url, data = {}, history, statusHandler) {
 	return body
 }
 
+export async function remove(url, data = {}, history, statusHandler) {
+	let body = await fetch(`${config.host}${url}`, {
+		body: JSON.stringify(data),
+		method: 'DELETE',
+		headers: {
+			Authorization: `Bearer ${store.getState().token}`,
+			'Content-Type': 'application/json',
+		}
+	}).then(res => responseStatusHandle(res, history, statusHandler)).catch(handleError)
+	return body
+}
+
 export function login(body, statusHandler) {
 	return post('/users/admin-login', body, undefined, statusHandler)
 }
@@ -150,6 +162,18 @@ export function addCheckDesk(data, history, statusHandler) {
 
 export function queryCheckDesks(query, history) {
 	return get(`/check-desks`, query, history)
+}
+
+export function queryAnnouncements(query, history) {
+	return get(`/system/business/announcements`, query, history)
+}
+
+export function deleteAnnouncement(announcementId, history) {
+	return remove(`/system/business/announcements/${announcementId}`, undefined, history)
+}
+
+export function addAnnouncement(data, history, statusHandler) {
+	return post(`/system/business/announcements`, data, history, statusHandler)
 }
 
 export function addCheckRecord(data, history, statusHandler) {

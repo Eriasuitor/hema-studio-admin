@@ -180,7 +180,6 @@ class App extends React.Component {
         title="所有用户"
         extra={[
           <Button key="1" type='primary' onClick={this.newUser.bind(this)}>创建学员</Button>
-          // <Button key="2" onClick={() => this.setState({ showNewCheckRecordPanel: true })}>新增签到</Button>
         ]}
       >
         <Row gutter={16} style={{ marginLeft: '24px', marginRight: '24px' }}>

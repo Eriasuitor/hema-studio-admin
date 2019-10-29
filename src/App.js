@@ -11,6 +11,7 @@ import CheckDeskDetail from './containers/checkDeskDetail'
 import EnrollmentDetail from './containers/enrollmentDetail'
 import CourseDetail from './containers/courseDetail'
 import Profile from './containers/profile'
+import Announcements from './containers/announcement'
 import Login from './containers/login';
 import { withRouter } from "react-router-dom";
 import PropTypes from "prop-types";
@@ -21,6 +22,8 @@ import DashboardIcon from './Icons/Dashboard';
 import BookIcon from './Icons/Book';
 import EnrollmentIcon from './Icons/Enrollment';
 import CheckInIcon from './Icons/CheckIn';
+import SettingIcon from './Icons/Setting';
+import AnnouncementIcon from './Icons/Announcement';
 import UserIcon from './Icons/Users'
 import config from './config/index'
 
@@ -47,6 +50,7 @@ class App extends React.Component {
     { url: '/courses', title: '课程', key: "3", icon: BookIcon },
     { url: '/enrollments', title: '报名', key: "4", icon: EnrollmentIcon },
     { url: '/check-desks', title: '签到', key: "5", icon: CheckInIcon },
+    { url: '/announcements', title: '通知', key: "6", icon: AnnouncementIcon },
   ]
 
   calculatePathKey(url) {
@@ -114,6 +118,7 @@ class App extends React.Component {
                 <Route path="/enrollments" component={Enrollment} />
                 <Route path="/check-desks/:checkDeskId" component={CheckDeskDetail} />
                 <Route path="/check-desks" component={CheckDesk} />
+                <Route path="/announcements" component={Announcements} />
               </Switch>
             </Content>
           </Layout>

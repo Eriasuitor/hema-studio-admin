@@ -164,7 +164,6 @@ class App extends React.Component {
         title={this.state.enrollment.name}
         extra={[
           <Button key="1" type='primary' onClick={() => this.setState({ showNewCheckRecord: true })}>添加签到记录</Button>
-          // <Button key="2" onClick={() => this.setState({ showNewCheckRecordPanel: true })}>新增签到</Button>
         ]}
         footer={
           <Tabs defaultActiveKey="1">
